@@ -15,7 +15,8 @@ STEPS
 .start creating and  testing lambda
 . get lambda zipped with dependancies and put onto aws. 
 .Create a new IAM role for the Lambda function with permissions to access the S3 bucket. Note down the ARN of the role.
-.Define the Lambda function's configuration:
+.Define the Lambda function's configuration: ie 
+.create an event (trigger) that triggers lambda when csv file lands in ingestion s3 bucket. 
 '''
 
 # Simulate Ingestion Bucket
@@ -65,3 +66,9 @@ def lambda_handler(event, context):
 #         https://docs.aws.amazon.com/lambda/latest/dg/python-context.html
 
 #         https://docs.aws.amazon.com/eventbridge/latest/userguide/eb-get-started.html
+
+
+# iam = boto3.client('iam', region_name='us-east-1')
+# policy = '{"Version": "2012-10-17","Statement": [{ "Effect": "Allow", "Principal": {"Service": "lambda.amazonaws.com"},"Action": "sts:AssumeRole"}]}
+# response = iam.create_role( RoleName=role_name, AssumeRolePolicyDocument=lambda_role_document)
+# print(iam.list_roles())
