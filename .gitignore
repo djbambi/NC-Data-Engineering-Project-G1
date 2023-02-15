@@ -1,1 +1,6 @@
 venv/
+**/.vscode/
+**/*.pyc
+**/.vscode
+**/*_cache
+**/*pycache
