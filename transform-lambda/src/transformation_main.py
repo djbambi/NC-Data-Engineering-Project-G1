@@ -96,18 +96,22 @@ iam_policy_doc = {
 string_iam_policy = json.dumps(iam_policy_doc)
 
 # CREATE IAM EXECUTION ROLE
-iam_response = iam_client.create_role(
-    RoleName='transform-iam-role',
-    AssumeRolePolicyDocument=string_iam_policy,
-    Tags=[
-        {
-            'Key': 'iam-role-tag',
-            'Value': ''
-        },
-    ]
-)
+# iam_response = iam_client.create_role(
+#    RoleName='trans-iam-role',
+#    AssumeRolePolicyDocument=string_iam_policy,
+#    Tags=[
+#        {
+#            'Key': 'iam-role-tag',
+#            'Value': ''
+#        },
+#    ]
+# )
 
-print(iam_response)
+
+iam_role = iam_client.get_role(RoleName='trans-iam-role')
+# iam_role_arn = iam_response['Role']['Arn']
+# print(iam_role_arn)
+
 
 # CREATE S3 ACCESS POLICY
 
@@ -118,7 +122,7 @@ bucket_policy = {
         {
             "Sid": "VisualEditor0",
             "Effect": "Allow",
-            "Principal": {"AWS": "arn:aws:iam::108554963036:role/transform-iam-role"},
+            "Principal": {"AWS": "arn:aws:iam::271939554930:role/trans-iam-role"},
             "Action": ["s3:GetObject"],
             "Resource": f"arn:aws:s3:::{bucket_one}",
 
@@ -130,7 +134,7 @@ bucket_policy = {
 bucket_policy = json.dumps(bucket_policy)
 
 # Set the new policy
-s3.put_bucket_policy(Bucket=bucket_one, Policy=bucket_policy)
+# s3.put_bucket_policy(Bucket=bucket_one, Policy=bucket_policy)
 
 
 '''DEPLOY THE LAMDA FROM THE ZIP FILE THAT IS IN THE LAMBDA S3 ON AWS'''
@@ -141,10 +145,10 @@ response = lambda_client.create_function(
     FunctionName='transformation-lambda',
     Handler='lambda-hander.lambda_handler',
     Runtime='python3.9',
-    Role='ROLE-ARN',
+    Role=iam_role['Role']['Arn'],
     Code={
         'S3Bucket': bucket_three,
-         'S3Key': './lambda-deployment.zip'
+        'S3Key': 'lambda-deployment.zip'
     }
 )
 
