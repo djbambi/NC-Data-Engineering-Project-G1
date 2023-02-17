@@ -18,7 +18,3 @@ with zipfile.ZipFile('lambda-deployment.zip', 'w') as zip:
 # Add ZIP to s3 bucket
 s3.upload_file('./lambda-deployment.zip',
                bucket_three, 'lambda-deployment.zip')
-
-# List the objects in 'lambda bucket' s3 bucket
-lambda_list = s3.list_objects_v2(Bucket=bucket_three)
-print(lambda_list['Contents'])
