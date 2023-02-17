@@ -39,6 +39,5 @@ def test_table_data_is_correct():
         assert len(row) == 4
 
 
-
     
  
