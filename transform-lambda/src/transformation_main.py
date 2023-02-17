@@ -26,26 +26,11 @@ bucket_one = 'sqhellsangels-ingestion-bucket'
 create_simulation_buckets()
 
 '''CREATE ALL AWS RESOURCES + EXTRACTION, TRANSFORMATION AND LOADING OF FILES'''
-# Get CSV file from ingestion bucket save locally
-response = s3.get_object(Bucket=bucket_one, Key='test.csv')
-with open('retrieved.csv', 'wb') as f:
-    f.write(response['Body'].read())
-
-
-# read CSV file into a Pandas DataFrame
-df = pd.read_csv('retrieved.csv')
-# convert DataFrame to Parquet format and save to file
-df.to_parquet('transformed-data.parquet')
 
 
 # create S3 bucket for processed data
 bucket_two = 'sqhellsangels-processed-bucket'
 s3.create_bucket(Bucket=bucket_two)
-
-
-# Upload object to bucket
-with open('transformed-data.parquet', 'rb') as f:
-    s3.put_object(Bucket=bucket_two, Key='transformed-data.parquet', Body=f)
 
 
 # List the objects in 'processed' s3 bucket
