@@ -40,5 +40,10 @@ def test_column_names_exist():
     convert_to_csv(mock_data2)
 
     with open("./src/csv_files/payment.csv", "r") as file:
+        if os.path.exists("./src/csv_files"):
+            shutil.rmtree("src/csv_files")
+
         reader = csv.reader(file)
-        assert "payment_id,created_at" in reader
+        row1 = next(reader)
+        assert "payment_id" in row1
+        assert "last_updated" in row1
