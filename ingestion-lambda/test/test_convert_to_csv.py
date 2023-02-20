@@ -43,6 +43,8 @@ def test_column_names_exist():
         if os.path.exists("./src/csv_files"):
             shutil.rmtree("src/csv_files")
 
+        convert_to_csv(mock_data2)
+
         reader = csv.reader(file)
         row1 = next(reader)
         assert "payment_id" in row1
