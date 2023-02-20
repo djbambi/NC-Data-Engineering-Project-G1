@@ -27,7 +27,7 @@ def test_value_of_each_table_name_key_is_a_list_of_table_data():
         assert type(output[index][name]) == list
 
 def test_table_data_is_correct():
-    output = ingest()      
+    output = ingest()   
      
     for row in output[0]['counterparty']:
         assert len(row) == 7
