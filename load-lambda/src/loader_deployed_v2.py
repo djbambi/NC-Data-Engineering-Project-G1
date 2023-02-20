@@ -25,21 +25,32 @@ def lambda_handler(event, context):
             https://docs.aws.amazon.com/lambda/latest/dg/python-context.html
     """
     try:
-        s3_bucket_name, s3_object_name, warehouse_conn = get_warehouse_connection(event,hostname,parole)
+        #s3_bucket_name, s3_object_name, warehouse_conn = get_warehouse_connection(event,hostname,parole)
+        s3_bucket_name, s3_object_name = get_object_path(event['Records'])
         logger.info(f'Bucket is {s3_bucket_name}')
-        s3, object_names = list_bucket_objects(s3_bucket_name)
-        logger.info(f'Object keys are  {object_names}')
-        #text = get_data_from_file(s3, s3_bucket_name, s3_object_name)
-        #s3 = boto3.client('s3')
-        text = get_data_from_file(s3, s3_bucket_name, object_names[0])
-        logger.info(f'file contents: {text}')
+        object_names=["one", "two","3"]
+        #object_names = list_bucket_objects(s3_bucket_name)
+        #logger.info(f'Object keys are: {object_names}')
+        object_names = get_bucket_objects(s3_bucket_name)
+        logger.info(f'Object keys are: {object_names}')
+        s3 = boto3.client('s3')
+        logger.info(f'object is {s3_object_name}')
+        text = get_text_from_file(s3, s3_bucket_name, s3_object_name)
+        logger.info('File contents...')
+        logger.info(f'{text}')
+        
+        
+    except KeyError as k:
+        logger.error(f'Error retrieving data, {k}')
 
     except ClientError as c:
         if c.response['Error']['Code'] == 'NoSuchKey':
             logger.error(f'No object found - {s3_object_name}')
         elif c.response['Error']['Code'] == 'NoSuchBucket':
             logger.error(f'No such bucket - {s3_bucket_name}')
-    
+    except Exception as e:
+        logger.error(e)
+        raise RuntimeError
     return None
 
 
@@ -52,13 +63,13 @@ def list_bucket_objects(bucket_name):
     try:
         logger.info(f'listing bucket{bucket_name}')
         client = boto3.client('s3')
-        bucket_contents = client.list_objects_v2(Bucket=bucket_name)
+        bucket_contents = client.list_objects(Bucket=bucket_name)
         objects = []
         if 'Contents' in bucket_contents:
             objects = [obj['Key'] for obj in bucket_contents['Contents']]
     except Exception as e:
         logger.error(e)
-    return client, objects
+    return objects
     
 def get_bucket_objects(bucket_name):
     try:
@@ -70,7 +81,7 @@ def get_bucket_objects(bucket_name):
         logger.error(e)
     return objects
 
-def get_data_from_file(client, bucket, object_key):
+def get_text_from_file(client, bucket, object_key):
     """Reads text from specified file in S3."""
     logger.info(f'object key is {object_key}')
     data = client.get_object(Bucket=bucket, Key=object_key)
@@ -85,8 +96,8 @@ def get_warehouse_connection(event, host_name, pswd):
         Returns: a tuple of Bucket name, object name and connection"""
     try:
         s3_bucket_name, s3_object_name = get_object_path(event['Records'])
-        logger.info(f'Bucket is {s3_bucket_name}')
-        logger.info(f'Object key is {s3_object_name}')
+        #logger.info(f'Bucket is {s3_bucket_name}')
+        #logger.info(f'Object key is {s3_object_name}')
     except ClientError as c:
         if c.response['Error']['Code'] == 'NoSuchKey':
             logger.error(f'No object found - {s3_object_name}')
@@ -100,4 +111,3 @@ def get_warehouse_connection(event, host_name, pswd):
     except Exception as ex:
         logger.error(f'connection error: {ex}')
     return s3_bucket_name, s3_object_name, conn
-
