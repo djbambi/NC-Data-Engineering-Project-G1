@@ -27,7 +27,8 @@ def lambda_handler(event, context):
     try:
         s3_bucket_name, s3_object_name, warehouse_conn = get_warehouse_connection(event,hostname,parole)
         logger.info(f'Bucket is {s3_bucket_name}')
-        logger.info(f'Object key is {s3_object_name}')
+        object_names = get_bucket_objects(s3_bucket_name)
+        logger.info(f'Object keys: is {object_names}')
 
     except ClientError as c:
         if c.response['Error']['Code'] == 'NoSuchKey':
@@ -42,6 +43,13 @@ def get_object_path(records):
     """Extracts bucket and object references from Records field of event."""
     return records[0]['s3']['bucket']['name'], \
         records[0]['s3']['object']['key']
+
+
+def get_bucket_objects(bucket_name):
+    s3 = boto3.resource('s3')
+    bucket = s3.Bucket(bucket_name)
+    objects = [object.key for object in bucket.objects.all()]
+    return object
 
 
 def get_warehouse_connection(event, host_name, pswd):

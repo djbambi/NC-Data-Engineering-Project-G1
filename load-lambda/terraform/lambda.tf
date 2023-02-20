@@ -6,7 +6,7 @@ resource "aws_lambda_function" "s3_file_loader" {
   handler = "warehouse_loader.lambda_handler"
   runtime = "python3.9"
   #filename = "function.zip"
-  source_code_hash = filebase64sha256("loader_function.zip")
+  #source_code_hash = filebase64sha256("loader_function.zip")
 }
 
 resource "aws_lambda_permission" "allow_s3" {
