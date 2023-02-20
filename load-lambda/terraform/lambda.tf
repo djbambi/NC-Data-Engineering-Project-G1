@@ -7,6 +7,7 @@ resource "aws_lambda_function" "s3_file_loader" {
   runtime = "python3.9"
   #filename = "function.zip"
   #source_code_hash = filebase64sha256("loader_function.zip")
+  layers = ["arn:aws:lambda:us-east-1:336392948345:layer:AWSSDKPandas-Python39:3"]
 }
 
 resource "aws_lambda_permission" "allow_s3" {

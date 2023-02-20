@@ -1,9 +1,9 @@
 resource "aws_s3_bucket" "code_bucket" {
-  bucket = "nc-proj-1-code-2"
+  bucket_prefix = "sqhells-code-1"
 }
 
 resource "aws_s3_bucket" "data_bucket" {
-  bucket = "nc-proj-1-data-2"
+  bucket_prefix = "sqhells-transform-"
 }
 
 resource "aws_s3_object" "loader_lambda_code" {
