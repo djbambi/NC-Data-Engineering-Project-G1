@@ -2,7 +2,7 @@
 
 #BUCKET ONE - INGESTION
 resource "aws_s3_bucket" "bucket_one" {
-  bucket = "ingestion-bucket-sqhell"
+  bucket = "ingestion-bucket-sqhells"
 }
 output "bucket_one_arn" {
   value = aws_s3_bucket.bucket_one.arn
@@ -17,7 +17,7 @@ resource "aws_s3_bucket_object" "test_csv" {
 
 # BUCKET TWO - PROCESSED
  resource "aws_s3_bucket" "bucket_two" {
-   bucket = "processed-bucket-sqhell"
+   bucket = "processed-bucket-sqhells"
  }
  output "bucket_two_arn" {
    value = aws_s3_bucket.bucket_two.arn
@@ -25,7 +25,7 @@ resource "aws_s3_bucket_object" "test_csv" {
 
 #BUCKET THREE - LAMBDA
  resource "aws_s3_bucket" "bucket_three" {
-   bucket = "lambda-bucket-sqhell"
+   bucket = "lambda-bucket-sqhells"
  }
 
  output "bucket_three_arn" {
