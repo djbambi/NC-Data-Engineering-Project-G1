@@ -4,4 +4,4 @@ venv/
 **/.vscode
 **/*_cache
 **/*pycache
-load-lambda/terraform/.terraform/
+**/terraform/.terraform/
