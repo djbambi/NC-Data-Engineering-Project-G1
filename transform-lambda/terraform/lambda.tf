@@ -13,4 +13,6 @@
    role         = aws_iam_role.iam_role.arn
    handler      = "lambda_handler.lambda_handler"
    runtime      = "python3.9"
+   timeout      = 300 
+   source_code_hash = filebase64sha256("../src/lambda-deployment.zip")
  }

@@ -15,6 +15,18 @@ data "aws_iam_policy_document" "s3_document" {
       
     ]
   }
+   statement {
+    actions = ["s3:ListBucket"]
+
+    resources = [
+      "${aws_s3_bucket.bucket_one.arn}",
+      "${aws_s3_bucket.bucket_two.arn}",
+      "${aws_s3_bucket.bucket_three.arn}",
+      "${aws_s3_bucket.bucket_one.arn}/*",
+      "${aws_s3_bucket.bucket_two.arn}/*",
+      "${aws_s3_bucket.bucket_three.arn}/*",
+    ]
+  }
 }
 
 #ATTACH DOC TO POLICY
