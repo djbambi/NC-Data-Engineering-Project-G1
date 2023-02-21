@@ -12,6 +12,7 @@ data "aws_iam_policy_document" "s3_document" {
     resources = [
       "${aws_s3_bucket.bucket_two.arn}",
       "${aws_s3_bucket.bucket_two.arn}/*"
+      
     ]
   }
 }
