@@ -15,13 +15,12 @@ def connect():
         hostname='nc-data-eng-project-dw-prod.chpsczt8h1nu.eu-west-2.rds.amazonaws.com'
         parole='5v8FmZSgQEdCxtN'
         conn = pg.Connection(user='project_team_1',host=hostname,password=parole,database='postgres')
-        result =conn.run('SELECT * FROM dim_currency')
-        titles = [ meta_data['name'] for meta_data in conn.columns]
-        print(f'titles: {titles}')
+        # result =conn.run('SELECT * FROM dim_currency')
+        # titles = [ meta_data['name'] for meta_data in conn.columns]
+        # print(f'titles: {titles}')
     except Exception as ex:
         print(f'error_msg: {ex}')
-
-    pass 
+    return conn 
 
 def list_bucket_objects(bucket_name):
     """ the function reads the name of files(keys) in the S3 bukets
@@ -106,9 +105,23 @@ def make_table_query(data_frame, table_name, row_idx, type="INSERT"):
         query_str += f'{col_list[id_col_idx]}={data_list[id_col_idx]};'
     return query_str
 
+def put_data_frame_to_table(df_name, table_name):
+    """ loops through each row in the data frame provided, 
+        checks if the row _id exists in the data table 
+        and inserts or updates the row accordingly
+    """
+    db_conn = connect()
+    for row in df_name.iterrows():
+        query = make_table_query(df_name, table_name,row[0])
+        result = db_conn.run(query)
+        print(result)
+    return None
+
 #client, file_list= list_bucket_objects(test_bucket)
 #get_data_from_file(client, test_bucket, file_list[0])
 
 #print(get_bucket_objects(test_bucket))
 
 #connect()
+staff_df = pd.read_parquet('./test_data/dim_staff.parquet')
+put_data_frame_to_table(staff_df, 'dim_staff')
