@@ -4,14 +4,19 @@ import os
 import shutil
 import csv
 
+# file_path = "/tmp"
 
-# def test_writes_a_csv_file():
-#     if os.path.exists("./src/csv_files"):
-#         shutil.rmtree("src/csv_files")
+def reset_folder():
+    if os.path.exists("src/csv_files"):
+        shutil.rmtree("src/csv_files")
+    os.mkdir('src/csv_files')
 
-#     convert_to_csv(mock_data)
+def test_writes_a_csv_file():
+    reset_folder()
+        
+    convert_to_csv(mock_data)
 
-#     assert os.path.exists("./src/csv_files/payment.csv") == True
+    assert os.path.exists("./src/csv_files/payment.csv") == True
 
 
 # def test_writes_csv_files_():
@@ -49,10 +54,3 @@ import csv
 #         row1 = next(reader)
 #         assert "payment_id" in row1
 #         assert "last_updated" in row1
-
-def test_converts_json():
-    if os.path.exists("./src/csv_files"):
-        shutil.rmtree("src/csv_files")
-        
-    convert_to_csv(mock_data2)
-    assert 1 == 2
