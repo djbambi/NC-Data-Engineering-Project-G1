@@ -19,38 +19,32 @@ def test_writes_a_csv_file():
     assert os.path.exists("./src/csv_files/payment.csv") == True
 
 
-# def test_writes_csv_files_():
-#     if os.path.exists("./src/csv_files"):
-#         shutil.rmtree("src/csv_files")
+def test_writes_csv_files_():
+    reset_folder()
 
-#     convert_to_csv(mock_data)
+    convert_to_csv(mock_data)
 
-#     assert os.path.exists("./src/csv_files/payment.csv") == True
-#     assert os.path.exists("./src/csv_files/transaction.csv") == True
-#     assert os.path.exists("./src/csv_files/sales_order.csv") == True
-
-
-# def test_doesnt_save_empty_files():
-#     if os.path.exists("./src/csv_files"):
-#         shutil.rmtree("src/csv_files")
-
-#     assert os.path.exists("./src/csv_files/design.csv") == False
-#     assert os.path.exists("./src/csv_files/staff.csv") == False
+    assert os.path.exists("./src/csv_files/payment.csv") == True
+    assert os.path.exists("./src/csv_files/transaction.csv") == True
+    assert os.path.exists("./src/csv_files/sales_order.csv") == True
 
 
-# def test_column_names_exist():
-#     if os.path.exists("./src/csv_files"):
-#         shutil.rmtree("src/csv_files")
+def test_doesnt_save_empty_files():
+    reset_folder()
 
-#     convert_to_csv(mock_data2)
+    convert_to_csv(mock_data)
 
-#     with open("./src/csv_files/payment.csv", "r") as file:
-#         if os.path.exists("./src/csv_files"):
-#             shutil.rmtree("src/csv_files")
+    assert os.path.exists("./src/csv_files/design.csv") == False
+    assert os.path.exists("./src/csv_files/staff.csv") == False
 
-#         convert_to_csv(mock_data2)
 
-#         reader = csv.reader(file)
-#         row1 = next(reader)
-#         assert "payment_id" in row1
-#         assert "last_updated" in row1
+def test_column_names_exist():
+    reset_folder()
+
+    convert_to_csv(mock_data2)
+
+    with open("src/csv_files/payment.csv", "r") as file:
+        reader = csv.reader(file)
+        row1 = next(reader)
+        assert "payment_id" in row1
+        assert "last_updated" in row1
