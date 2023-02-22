@@ -4,8 +4,8 @@ import boto3
 import logging
 from botocore.exceptions import ClientError
 
-logger = logging.getLogger('MyLogger')
-logger.setLevel(logging.INFO)
+from warehouse_utils import logger, list_bucket_objects, get_data_from_file
+
 
 #this will be put into secrets manager later
 hostname='nc-data-eng-project-dw-prod.chpsczt8h1nu.eu-west-2.rds.amazonaws.com'
@@ -47,35 +47,6 @@ def get_object_path(records):
     """Extracts bucket and object references from Records field of event."""
     return records[0]['s3']['bucket']['name'], records[0]['s3']['object']['key']
 
-
-def list_bucket_objects(bucket_name):
-    try:
-        logger.info(f'listing bucket{bucket_name}')
-        client = boto3.client('s3')
-        bucket_contents = client.list_objects_v2(Bucket=bucket_name)
-        objects = []
-        if 'Contents' in bucket_contents:
-            objects = [obj['Key'] for obj in bucket_contents['Contents']]
-    except Exception as e:
-        logger.error(e)
-    return client, objects
-    
-def get_bucket_objects(bucket_name):
-    try:
-        logger.info(f'getting bucket{bucket_name}')
-        s3 = boto3.resource('s3')
-        bucket = s3.Bucket(bucket_name)
-        objects = [obj.key for obj in bucket.objects.all()]
-    except Exception as e:
-        logger.error(e)
-    return objects
-
-def get_data_from_file(client, bucket, object_key):
-    """Reads text from specified file in S3."""
-    logger.info(f'object key is {object_key}')
-    data = client.get_object(Bucket=bucket, Key=object_key)
-    contents = data['Body'].read()
-    return contents.decode('utf-8')
 
 def get_warehouse_connection(event, host_name, pswd):
     """Connects to the warehouse database
