@@ -46,8 +46,8 @@ def test_value_of_each_table_name_key_is_a_list_of_table_data():
         assert type(output[index][name]) == list
 
 def test_table_data_is_correct():
-    time = '2023-01-01 08:00:13.016000'
-    output = get_updated_data(time)  
+    time = '2022-01-01 08:00:13.016000'
+    output = get_updated_data(time)
     
     for row in output[0]['counterparty']:
         assert len(row) == 7
