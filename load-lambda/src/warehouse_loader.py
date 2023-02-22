@@ -56,8 +56,6 @@ def get_warehouse_connection(event, host_name, pswd):
         Returns: a tuple of Bucket name, object name and connection"""
     try:
         s3_bucket_name, s3_object_name = get_object_path(event['Records'])
-        logger.info(f'Bucket is {s3_bucket_name}')
-        logger.info(f'Object key is {s3_object_name}')
     except ClientError as c:
         if c.response['Error']['Code'] == 'NoSuchKey':
             logger.error(f'No object found - {s3_object_name}')
