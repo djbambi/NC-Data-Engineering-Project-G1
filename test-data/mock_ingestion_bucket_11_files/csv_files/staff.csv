@@ -1,0 +1,6 @@
+staff_id,first_name,last_name,department_id,email_address,created_at,last_updated
+1,Jeremie,Franey,2,jeremie.franey@terrifictotes.com,2022-11-03 14:20:51.563000,2022-11-03 14:20:51.563000
+2,Deron,Beier,6,deron.beier@terrifictotes.com,2022-11-03 14:20:51.563000,2022-11-03 14:20:51.563000
+3,Jeanette,Erdman,6,jeanette.erdman@terrifictotes.com,2022-11-03 14:20:51.563000,2022-11-03 14:20:51.563000
+4,Ana,Glover,3,ana.glover@terrifictotes.com,2022-11-03 14:20:51.563000,2022-11-03 14:20:51.563000
+5,Magdalena,Zieme,8,magdalena.zieme@terrifictotes.com,2022-11-03 14:20:51.563000,2022-11-03 14:20:51.563000

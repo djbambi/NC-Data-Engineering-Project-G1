@@ -3,8 +3,9 @@ import pg8000.native as pg
 import boto3
 import logging
 from botocore.exceptions import ClientError
+from pg8000.exceptions import InterfaceError, DatabaseError
 
-from warehouse_utils import logger, list_bucket_objects, get_data_from_file
+from warehouse_utils import logger, list_bucket_objects, get_data_from_file, extract_table_name, put_data_frame_to_table
 
 
 #this will be put into secrets manager later
@@ -27,18 +28,26 @@ def lambda_handler(event, context):
     try:
         s3_bucket_name, s3_object_name, warehouse_conn = get_warehouse_connection(event,hostname,parole)
         logger.info(f'Bucket is {s3_bucket_name}')
-        s3, object_names = list_bucket_objects(s3_bucket_name)
+        s3_client, object_names = list_bucket_objects(s3_bucket_name)
         logger.info(f'Object keys are  {object_names}')
+        for object_key in object_names:
+            table_name = extract_table_name(object_key)
+            parquet_df = get_data_from_file(s3_client, s3_bucket_name, object_key)
+            put_data_frame_to_table(warehouse_conn, parquet_df, table_name)
+            logger.info(f'Updated table: {table_name}')
         #text = get_data_from_file(s3, s3_bucket_name, s3_object_name)
         #s3 = boto3.client('s3')
-        text = get_data_from_file(s3, s3_bucket_name, object_names[0])
-        logger.info(f'file contents: {text}')
+        # text = get_data_from_file(s3, s3_bucket_name, object_names[0])
+        # logger.info(f'file contents: {text}')
 
     except ClientError as c:
         if c.response['Error']['Code'] == 'NoSuchKey':
             logger.error(f'No object found - {s3_object_name}')
         elif c.response['Error']['Code'] == 'NoSuchBucket':
             logger.error(f'No such bucket - {s3_bucket_name}')
+    except DatabaseError as de:
+                logger.error(f'database error - {de}')
+                # logger.error('database error')
     
     return None
 
