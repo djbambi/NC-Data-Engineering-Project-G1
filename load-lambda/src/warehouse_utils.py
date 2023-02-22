@@ -1,6 +1,6 @@
 import pg8000.native as pg
 import pandas as pd
-from pg8000.exceptions import InterfaceError
+from pg8000.exceptions import InterfaceError, DatabaseError
 import boto3
 import logging
 import io
@@ -73,7 +73,7 @@ def make_table_query(data_frame, table_name, row_idx, type="INSERT"):
     """ goes through the dataframe column names and prepares the SQL query
     to INSERT or UPDATE the specified row in 
     the specified table using the data from dataframe """
-    query_str = ''
+    query_str = ""
     col_list = data_frame.columns.to_list()
     data_list = data_frame.iloc[row_idx].to_list()
     zip_data_list = list(zip(col_list, data_list))
@@ -86,35 +86,52 @@ def make_table_query(data_frame, table_name, row_idx, type="INSERT"):
         i += 1
     
     if type == "INSERT":
-        query_str += f'INSERT INTO {table_name} ('
-        val_str = ''
+        query_str += f"INSERT INTO {table_name} ("
+        val_str = ""
         for col_name in col_list:
-            val_str += col_name + ', '
-        query_str += val_str.rstrip(", ") + ') VALUES ('
-        val_str = ''
+            val_str += col_name + ", "
+        query_str += val_str.rstrip(", ") + ") VALUES ("
+        val_str = ""
         for value in data_list:
-            val_str += f'{value}, '
-        query_str += val_str.rstrip(", ") + ');'
+            val_str += f"'{value}', "
+        query_str += val_str.rstrip(", ") + ");"
     
-    elif type == 'UPDATE':
-        query_str += f'UPDATE {table_name} SET '
+    elif type == "UPDATE":
+        query_str += f"UPDATE {table_name} SET "
         val_str = ''
         for val in zip_data_list:
-            val_str += f'{val[0]}={val[1]}, '
-        query_str += val_str.rstrip(", ") + ' WHERE '
+            val_str += f"{val[0]}='{val[1]}', "
+        query_str += val_str.rstrip(", ") + " WHERE "
         query_str += f'{col_list[id_col_idx]}={data_list[id_col_idx]};'
+
+    else :
+        query_str += f"SELECT * FROM {table_name} WHERE "
+        query_str += f"{col_list[id_col_idx]}={data_list[id_col_idx]};"
     return query_str
 
-def put_data_frame_to_table(df_name, table_name):
+def put_data_frame_to_table(db_conn, df_name, table_name):
     """ loops through each row in the data frame provided, 
         checks if the row _id exists in the data table 
         and inserts or updates the row accordingly
     """
-    db_conn = connect()
+    logger = logging.getLogger('warehouse_loader logger')
+    logger.setLevel(logging.INFO)
+    error_at_previous_row = False
     for row in df_name.iterrows():
-        query = make_table_query(df_name, table_name,row[0])
-        result = db_conn.run(query)
-        print(result)
+        if not error_at_previous_row:
+            try:                
+                query = make_table_query(df_name,table_name,row[0],type="SELECT")
+                result = db_conn.run(query)
+                if not result:
+                    query = make_table_query(df_name, table_name,row[0],type="INSERT")
+                else:
+                    query = make_table_query(df_name, table_name,row[0],type="UPDATE")
+                result = db_conn.run(query)
+                print(result)
+            except Exception as de:
+                error_at_previous_row = True
+                #logger.error(f'database error - {de}')
+                logger.error('database error')
     return None
 
 #client, file_list= list_bucket_objects(test_bucket)
@@ -122,6 +139,8 @@ def put_data_frame_to_table(df_name, table_name):
 
 #print(get_bucket_objects(test_bucket))
 
-#connect()
-staff_df = pd.read_parquet('./test_data/dim_staff.parquet')
-put_data_frame_to_table(staff_df, 'dim_staff')
+# conn = connect()
+# staff_df = pd.read_parquet('./test_data/dim_location.parquet')
+# # for row in staff_df.iterrows():
+# #     print(row[1].to_list()[0])
+# put_data_frame_to_table(conn, staff_df, 'dim_location')
