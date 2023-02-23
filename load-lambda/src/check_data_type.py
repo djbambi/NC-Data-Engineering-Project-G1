@@ -13,4 +13,4 @@ query = """
 cursor.execute(query)
 results = cursor.fetchall()
 for result in results:
-    print(result[1])
+    print(result)
