@@ -5,7 +5,7 @@ import boto3
 import logging
 import io
 
-test_bucket = 'sqhells-transform-20230221101154647200000004'
+test_bucket = 'sqhells-transform-*'
 logger = logging.getLogger('SQHellsLogger')
 logger.setLevel(logging.INFO)
 
@@ -36,7 +36,7 @@ def list_bucket_objects(bucket_name):
             objects = [obj['Key'] for obj in bucket_contents['Contents']]
     except Exception as e:
         logger.error(e)
-    return client, objects
+    return client, objects.sort()
 
 def get_bucket_objects(bucket_name):
     try:
@@ -69,7 +69,7 @@ def extract_table_name(file_key):
     ext_idx = file_key.rfind('.')
     return file_key[base_idx+1 : ext_idx]
 
-def make_table_query(data_frame, table_name, row_idx, type="INSERT"):
+def make_table_query(data_frame, table_name, row_idx, type="INSERT", id_type_date=False):
     """ goes through the dataframe column names and prepares the SQL query
     to INSERT or UPDATE the specified row in 
     the specified table using the data from dataframe """
@@ -95,6 +95,7 @@ def make_table_query(data_frame, table_name, row_idx, type="INSERT"):
         for value in data_list:
             val_str += f"'{value}', "
         query_str += val_str.rstrip(", ") + ");"
+
     
     elif type == "UPDATE":
         query_str += f"UPDATE {table_name} SET "
@@ -102,11 +103,18 @@ def make_table_query(data_frame, table_name, row_idx, type="INSERT"):
         for val in zip_data_list:
             val_str += f"{val[0]}='{val[1]}', "
         query_str += val_str.rstrip(", ") + " WHERE "
-        query_str += f'{col_list[id_col_idx]}={data_list[id_col_idx]};'
+        if id_type_date:
+            query_str += f"{col_list[id_col_idx]}=TO_DATE('{data_list[id_col_idx]}','YYYY-MM-DD');"
+        else:
+            query_str += f"{col_list[id_col_idx]}={data_list[id_col_idx]};"
 
     else :
         query_str += f"SELECT * FROM {table_name} WHERE "
-        query_str += f"{col_list[id_col_idx]}={data_list[id_col_idx]};"
+        if id_type_date:
+            query_str += f"{col_list[id_col_idx]}=TO_DATE('{data_list[id_col_idx]}','YYYY-MM-DD');"
+        else:
+            query_str += f"{col_list[id_col_idx]}={data_list[id_col_idx]};"
+
     return query_str
 
 def put_data_frame_to_table(db_conn, df_name, table_name):
@@ -117,30 +125,41 @@ def put_data_frame_to_table(db_conn, df_name, table_name):
     logger = logging.getLogger('warehouse_loader logger')
     logger.setLevel(logging.INFO)
     error_at_previous_row = False
+    format_query = f"SELECT attname, format_type(atttypid, atttypmod) AS data_type FROM pg_attribute WHERE attrelid = '{table_name}' ::regclass AND attnum >0;"
+
+    format_list = db_conn.run(format_query)
+    """ boolean array contining "does this column contains date", 
+        can be passed to the make_table_query to call the TO_DATE() function where needed
+        date_format_list = [ 'date' in result[1] for result in format_list]
+        #print(date_format_list)
+    """ 
+  
+    id_date_format = False
+    for result in format_list:
+        id_date_format = id_date_format or ( '_id' in result[0] and 'date' in result[1] )
+
     for row in df_name.iterrows():
         if not error_at_previous_row:
             try:                
-                query = make_table_query(df_name,table_name,row[0],type="SELECT")
+                query = make_table_query(df_name,table_name,row[0],type="SELECT",id_type_date=id_date_format)
                 result = db_conn.run(query)
                 if not result:
                     query = make_table_query(df_name, table_name,row[0],type="INSERT")
                 else:
-                    query = make_table_query(df_name, table_name,row[0],type="UPDATE")
+                    query = make_table_query(df_name, table_name,row[0],type="UPDATE",id_type_date=id_date_format)
                 result = db_conn.run(query)
-                print(result)
             except Exception as de:
                 error_at_previous_row = True
-                #logger.error(f'database error - {de}')
-                logger.error('database error')
+                logger.error(f'database error - {de}')
+                # logger.error('database error')
+
     return None
 
-#client, file_list= list_bucket_objects(test_bucket)
-#get_data_from_file(client, test_bucket, file_list[0])
 
-#print(get_bucket_objects(test_bucket))
 
-# conn = connect()
-# staff_df = pd.read_parquet('./test_data/dim_location.parquet')
+conn = connect()
+staff_df = pd.read_parquet('./test_data/fact_sales_order.parquet')
+#print(staff_df.head(4))
 # # for row in staff_df.iterrows():
 # #     print(row[1].to_list()[0])
-# put_data_frame_to_table(conn, staff_df, 'dim_location')
+put_data_frame_to_table(conn, staff_df, 'fact_sales_order')
