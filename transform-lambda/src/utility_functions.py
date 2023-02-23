@@ -1,6 +1,5 @@
 import pandas as pd
 import ccy
-import datetime
 
 
 def create_fact_sales_order():
@@ -122,8 +121,9 @@ def create_dim_staff():
     df['department_name'] = df['department_name'].fillna(value="No department")
     df['location'] = df['location'].fillna(value="No location")
 
-    transformed_dim_staff = df.to_parquet()
-    return transformed_dim_staff
+  #  transformed_dim_staff = df.to_parquet()
+   # return transformed_dim_staff
+    print(df)
 
 
 def create_dim_date():
@@ -165,5 +165,9 @@ def create_dim_date():
     df['month_name'] = df['date_id'].dt.month_name()
     df['quarter'] = df['date_id'].dt.quarter
 
-    transformed_dim_date = df.to_parquet()
-    return transformed_dim_date
+   # transformed_dim_date = df.to_parquet()
+   # return transformed_dim_date
+    print(df)
+
+
+create_dim_staff()
