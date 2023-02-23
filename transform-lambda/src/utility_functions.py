@@ -69,6 +69,7 @@ def create_dim_counterparty():
     df = counterparty_df.merge(counterparty_df[['legal_address_id', 'legal_address_line_1']], left_on='legal_address_id', right_on='address_id', how='left')
     print(df)
 
+
 def create_dim_staff():
 
     staff_df = pd.read_csv('../mock_ingestion_bucket_11_files/csv_files/staff.csv')
@@ -82,7 +83,6 @@ def create_dim_staff():
     
     transformed_dim_staff = df.to_parquet()
     return transformed_dim_staff
-
 
 
 create_dim_counterparty()
