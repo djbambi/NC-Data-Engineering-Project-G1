@@ -72,7 +72,6 @@ data "aws_iam_policy_document" "ingestion_cw_document" {
 }
 
 
-
 resource "aws_iam_policy" "ingestion_s3_policy" {
     name_prefix = "s3-policy-${var.ingestion_lambda_name}"
     policy = data.aws_iam_policy_document.ingestion_s3_document.json
