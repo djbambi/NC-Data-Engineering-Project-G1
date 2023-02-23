@@ -4,6 +4,7 @@ from pg8000.exceptions import InterfaceError, DatabaseError
 import boto3
 import logging
 import io
+import datetime as dt
 
 test_bucket = 'sqhells-transform-*'
 logger = logging.getLogger('SQHellsLogger')
@@ -36,7 +37,7 @@ def list_bucket_objects(bucket_name):
             objects = [obj['Key'] for obj in bucket_contents['Contents']]
     except Exception as e:
         logger.error(e)
-    return client, objects.sort()
+    return client, objects
 
 def get_bucket_objects(bucket_name):
     try:
@@ -116,6 +117,34 @@ def make_table_query(data_frame, table_name, row_idx, type="INSERT", id_type_dat
             query_str += f"{col_list[id_col_idx]}={data_list[id_col_idx]};"
 
     return query_str
+def create_dim_date_table(db_conn):
+    start_date_str = '2021-01-01'
+    num_days = 782
+    insert_query = """ 
+    INSERT INTO dim_date
+    SELECT
+        ts_seq AS date_id,
+        extract(year FROM ts_seq) AS year,
+        CAST(extract (month FROM ts_seq) AS INTEGER) AS month,
+        extract(day FROM ts_seq) AS day,
+        extract(isodow FROM ts_seq) AS day_of_week,
+        to_char(ts_seq, 'TMDay') AS day_name,
+        TO_CHAR(ts_seq, 'TMMonth') AS month_name,
+        extract(quarter FROM ts_seq) AS quarter
+    FROM """
+    check_query = "select COUNT(date_id) from dim_date  where year > 2020;"
+    result = db_conn.run(check_query)
+    if result[0][0] > 0 :
+        start_date_str = dt.date.today().isoformat()
+        num_days = 7
+        check_query = f"select * from dim_date where date_id=TO_DATE('{start_date_str}','YYYY-MM-DD');"
+        result = db_conn.run(check_query)
+        if len(result)>0:
+            return "dim_date table is up-to-date"
+   
+    insert_query += f" (SELECT '{start_date_str}' :: DATE + sequence.day AS ts_seq FROM GENERATE_SERIES(0, {num_days}) AS sequence(day)) dq; "
+    result = db_conn.run(insert_query)
+    return str(result)
 
 def put_data_frame_to_table(db_conn, df_name, table_name):
     """ loops through each row in the data frame provided, 
@@ -133,33 +162,29 @@ def put_data_frame_to_table(db_conn, df_name, table_name):
         date_format_list = [ 'date' in result[1] for result in format_list]
         #print(date_format_list)
     """ 
-  
-    id_date_format = False
-    for result in format_list:
-        id_date_format = id_date_format or ( '_id' in result[0] and 'date' in result[1] )
+    if 'date' in table_name:
+        logger.info(create_dim_date_table(db_conn))
+    else:
+        id_date_format = False
+        for result in format_list:
+            id_date_format = id_date_format or ( '_id' in result[0] and 'date' in result[1] )
 
-    for row in df_name.iterrows():
-        if not error_at_previous_row:
-            try:                
-                query = make_table_query(df_name,table_name,row[0],type="SELECT",id_type_date=id_date_format)
-                result = db_conn.run(query)
-                if not result:
-                    query = make_table_query(df_name, table_name,row[0],type="INSERT")
-                else:
-                    query = make_table_query(df_name, table_name,row[0],type="UPDATE",id_type_date=id_date_format)
-                result = db_conn.run(query)
-            except Exception as de:
-                error_at_previous_row = True
-                logger.error(f'database error - {de}')
-                # logger.error('database error')
+        for row in df_name.iterrows():
+            if not error_at_previous_row:
+                try:                
+                    query = make_table_query(df_name,table_name,row[0],type="SELECT",id_type_date=id_date_format)
+                    result = db_conn.run(query)
+                    if not result:
+                        query = make_table_query(df_name, table_name,row[0],type="INSERT")
+                    else:
+                        query = make_table_query(df_name, table_name,row[0],type="UPDATE",id_type_date=id_date_format)
+                    result = db_conn.run(query)
 
+                except Exception as de:
+                    error_at_previous_row = True
+                    logger.error(f'database error - {de}')
     return None
 
 
 
-conn = connect()
-staff_df = pd.read_parquet('./test_data/fact_sales_order.parquet')
-#print(staff_df.head(4))
-# # for row in staff_df.iterrows():
-# #     print(row[1].to_list()[0])
-put_data_frame_to_table(conn, staff_df, 'fact_sales_order')
+

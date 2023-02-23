@@ -27,7 +27,8 @@ data "aws_iam_policy_document" "s3_document" {
 
     resources = [
       "${aws_s3_bucket.code_bucket.arn}/*",
-      "${aws_s3_bucket.data_bucket.arn}/*",
+      "${aws_s3_bucket.data_bucket_one.arn}/*",
+      "${aws_s3_bucket.data_bucket_two.arn}/*",
     ]
   }
   statement {
@@ -35,9 +36,19 @@ data "aws_iam_policy_document" "s3_document" {
     actions = ["s3:ListBucket"]
 
     resources = [
-      "${aws_s3_bucket.data_bucket.arn}",
-      "${aws_s3_bucket.data_bucket.arn}/*",
+      "${aws_s3_bucket.data_bucket_one.arn}",
+      "${aws_s3_bucket.data_bucket_one.arn}/*",
+      "${aws_s3_bucket.data_bucket_two.arn}",
+      "${aws_s3_bucket.data_bucket_two.arn}/*",
       "${aws_s3_bucket.code_bucket.arn}/*",
+    ]
+  }
+  statement {
+
+    actions = ["s3:ListAllMyBuckets"]
+
+    resources = [
+      "arn:aws:s3:::*"
     ]
   }
 }
