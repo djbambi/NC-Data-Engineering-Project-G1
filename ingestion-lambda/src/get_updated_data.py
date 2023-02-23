@@ -21,4 +21,3 @@ def get_updated_data(latest_timestamp):
         table_data.append({table[0]: updated_rows})
     
     return table_data
-
