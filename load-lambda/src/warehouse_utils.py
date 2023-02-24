@@ -6,22 +6,11 @@ import logging
 import io
 import datetime as dt
 
-test_bucket = 'sqhells-transform-*'
+
 logger = logging.getLogger('SQHellsLogger')
 logger.setLevel(logging.INFO)
 
-def connect():
-    """ small utility to test the connection to warehouse database"""
-    try:
-        hostname='nc-data-eng-project-dw-prod.chpsczt8h1nu.eu-west-2.rds.amazonaws.com'
-        parole='5v8FmZSgQEdCxtN'
-        conn = pg.Connection(user='project_team_1',host=hostname,password=parole,database='postgres')
-        # result =conn.run('SELECT * FROM dim_currency')
-        # titles = [ meta_data['name'] for meta_data in conn.columns]
-        # print(f'titles: {titles}')
-    except Exception as ex:
-        print(f'error_msg: {ex}')
-    return conn 
+
 
 def list_bucket_objects(bucket_name):
     """ the function reads the name of files(keys) in the S3 bukets
@@ -154,6 +143,8 @@ def put_data_frame_to_table(db_conn, df_name, table_name):
     logger = logging.getLogger('warehouse_loader logger')
     logger.setLevel(logging.INFO)
     error_at_previous_row = False
+    inserted_rows = 0
+    updates_rows = 0
     format_query = f"SELECT attname, format_type(atttypid, atttypmod) AS data_type FROM pg_attribute WHERE attrelid = '{table_name}' ::regclass AND attnum >0;"
 
     format_list = db_conn.run(format_query)
@@ -163,7 +154,7 @@ def put_data_frame_to_table(db_conn, df_name, table_name):
         #print(date_format_list)
     """ 
     if 'date' in table_name:
-        logger.info(create_dim_date_table(db_conn))
+            logger.info(create_dim_date_table(db_conn))
     else:
         id_date_format = False
         for result in format_list:
@@ -176,14 +167,16 @@ def put_data_frame_to_table(db_conn, df_name, table_name):
                     result = db_conn.run(query)
                     if not result:
                         query = make_table_query(df_name, table_name,row[0],type="INSERT")
+                        inserted_rows += 1
                     else:
                         query = make_table_query(df_name, table_name,row[0],type="UPDATE",id_type_date=id_date_format)
+                        updates_rows += 1
                     result = db_conn.run(query)
 
                 except Exception as de:
                     error_at_previous_row = True
                     logger.error(f'database error - {de}')
-    return None
+    return inserted_rows, updates_rows
 
 
 

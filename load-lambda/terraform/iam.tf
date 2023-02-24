@@ -51,6 +51,15 @@ data "aws_iam_policy_document" "s3_document" {
       "arn:aws:s3:::*"
     ]
   }
+
+  statement {
+
+    actions = ["secretsmanager:GetSecretValue"]
+
+    resources = ["*"
+    ]
+  }
+
 }
 
 
