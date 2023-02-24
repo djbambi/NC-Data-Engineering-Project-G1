@@ -1,10 +1,16 @@
+import boto3
 import pandas as pd
 import ccy
 
+# create clients
+s3 = boto3.client('s3')
 
-def create_fact_sales_order():
-    df = pd.read_csv(
-        '../mock_ingestion_bucket_11_files/csv_files/sales_order.csv')
+
+def create_fact_sales_order(key, bucket, bucket_two):
+    # GET OBJECT
+    response = s3.get_object(Bucket=bucket, Key=key)
+    # READ OBJECT
+    df = pd.read_csv(response['Body'])
     # convert timestamp column to datetime format
     df['created_at'] = pd.to_datetime(df['created_at'])
     # split the timestamp column into date and time columns
@@ -21,38 +27,58 @@ def create_fact_sales_order():
     df = df.drop(columns=['last_updated'])
     # change the column name in place
     df.rename(columns={'staff_id': 'sales_staff_id'}, inplace=True)
+
     # convert DataFrame to Parquet format and save to file
     transformed_sales_order = df.to_parquet()
-    return transformed_sales_order
+
+    s3.put_object(Bucket=bucket_two,
+                  Key="dim_sales_order.parquet",
+                  Body=transformed_sales_order)
 
 
-def create_dim_location():
-    df = pd.read_csv('../mock_ingestion_bucket_11_files/csv_files/address.csv')
+def create_dim_location(key, bucket, bucket_two):
+    # GET OBJECT
+    response = s3.get_object(Bucket=bucket, Key=key)
+    # READ OBJECT
+    df = pd.read_csv(response['Body'])
+
     # change the column name in place
     df.rename(columns={'address_id': 'location_id'}, inplace=True)
     # drop the olast_updated column
     df = df.drop(columns=['last_updated'])
     # drop the created_at column
     df = df.drop(columns=['created_at'])
+
     transformed_dim_location = df.to_parquet()
-    return transformed_dim_location
+
+    s3.put_object(Bucket=bucket_two,
+                  Key="dim_location.parquet",
+                  Body=transformed_dim_location)
 
 
-def create_dim_design():
-    df = pd.read_csv('../mock_ingestion_bucket_11_files/csv_files/design.csv')
+def create_dim_design(key, bucket, bucket_two):
 
+    # GET OBJECT
+    response = s3.get_object(Bucket=bucket, Key=key)
+    # READ OBJECT
+    df = pd.read_csv(response['Body'])
     # drop the olast_updated column
     df = df.drop(columns=['last_updated'])
     # drop the created_at column
     df = df.drop(columns=['created_at'])
 
     transformed_dim_design = df.to_parquet()
-    return transformed_dim_design
+
+    s3.put_object(Bucket=bucket_two,
+                  Key="dim_design.parquet",
+                  Body=transformed_dim_design)
 
 
-def create_dim_currency():
-    df = pd.read_csv(
-        '../mock_ingestion_bucket_11_files/csv_files/currency.csv')
+def create_dim_currency(key, bucket, bucket_two):
+    # GET OBJECT
+    response = s3.get_object(Bucket=bucket, Key=key)
+    # READ OBJECT
+    df = pd.read_csv(response['Body'])
 
     # drop the olast_updated column
     df = df.drop(columns=['last_updated'])
@@ -64,15 +90,22 @@ def create_dim_currency():
         lambda x: ccy.currency(x).name)
 
     transformed_dim_currency = df.to_parquet()
-    return transformed_dim_currency
+
+    s3.put_object(Bucket=bucket_two,
+                  Key="dim_currency.parquet",
+                  Body=transformed_dim_currency)
 
 
-def create_dim_counterparty():
+def create_dim_counterparty(key, bucket, bucket_two):
+    # GET OBJECT
+    counterparty_response = s3.get_object(Bucket=bucket, Key=key)
+    # READ OBJECT
+    counterparty_df = pd.read_csv(counterparty_response['Body'])
 
-    counterparty_df = pd.read_csv(
-        '../mock_ingestion_bucket_11_files/csv_files/counterparty.csv')
-    address_df = pd.read_csv(
-        '../mock_ingestion_bucket_11_files/csv_files/address.csv')
+    # GET ADDRESS
+    address_response = s3.get_object(Bucket=bucket, Key="address/address.csv")
+    # READ ADDRESS
+    address_df = pd.read_csv(address_response['Body'])
 
     df = counterparty_df.merge(address_df[[
                                'address_id',
@@ -104,15 +137,23 @@ def create_dim_counterparty():
     }, inplace=True)
 
     transformed_dim_counter_party = df.to_parquet()
-    return transformed_dim_counter_party
+
+    s3.put_object(Bucket=bucket_two,
+                  Key="dim_counterparty.parquet",
+                  Body=transformed_dim_counter_party)
 
 
-def create_dim_staff():
+def create_dim_staff(key, bucket, bucket_two):
+    # GET STAFF
+    staff_response = s3.get_object(Bucket=bucket, Key=key)
+    # READ STAFF
+    staff_df = pd.read_csv(staff_response['Body'])
 
-    staff_df = pd.read_csv(
-        '../mock_ingestion_bucket_11_files/csv_files/staff.csv')
-    departments_df = pd.read_csv(
-        '../mock_ingestion_bucket_11_files/csv_files/department.csv')
+    # GET DEPARTMENTS
+    departments_response = s3.get_object(
+        Bucket=bucket, Key="department/department.csv")
+    # READ DEPARTMENTS
+    departments_df = pd.read_csv(departments_response['Body'])
 
     df = staff_df.merge(departments_df[['department_id', 'department_name', 'location']],
                         left_on='department_id', right_on='department_id', how='left')
@@ -121,15 +162,19 @@ def create_dim_staff():
     df['department_name'] = df['department_name'].fillna(value="No department")
     df['location'] = df['location'].fillna(value="No location")
 
-  #  transformed_dim_staff = df.to_parquet()
-   # return transformed_dim_staff
-    print(df)
+    transformed_dim_staff = df.to_parquet()
+
+    s3.put_object(Bucket=bucket_two,
+                  Key="dim_staff.parquet",
+                  Body=transformed_dim_staff)
 
 
-def create_dim_date():
+def create_dim_date(key, bucket, bucket_two):
 
-    df = pd.read_csv(
-        '../mock_ingestion_bucket_11_files/csv_files/sales_order.csv')
+    # GET OBJECT
+    response = s3.get_object(Bucket=bucket, Key=key)
+    # READ OBJECT
+    df = pd.read_csv(response['Body'])
 
     df['created_at'] = pd.to_datetime(df['created_at'])
     df['created_at'] = df['created_at'].dt.date
@@ -165,9 +210,8 @@ def create_dim_date():
     df['month_name'] = df['date_id'].dt.month_name()
     df['quarter'] = df['date_id'].dt.quarter
 
-   # transformed_dim_date = df.to_parquet()
-   # return transformed_dim_date
-    print(df)
+    transformed_dim_date = df.to_parquet()
 
-
-create_dim_staff()
+    s3.put_object(Bucket=bucket_two,
+                  Key="dim_date.parquet",
+                  Body=transformed_dim_date)
