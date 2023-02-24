@@ -26,6 +26,7 @@ def list_bucket_objects(bucket_name):
             objects = [obj['Key'] for obj in bucket_contents['Contents']]
     except Exception as e:
         logger.error(e)
+    objects.sort()
     return client, objects
 
 def get_bucket_objects(bucket_name):
@@ -36,6 +37,7 @@ def get_bucket_objects(bucket_name):
         objects = [obj.key for obj in bucket.objects.all()]
     except Exception as e:
         logger.error(e)
+    objects.sort()
     return objects
 
 
@@ -179,5 +181,11 @@ def put_data_frame_to_table(db_conn, df_name, table_name):
     return inserted_rows, updates_rows
 
 
-
-
+def find_bucket_by_keyword(keyword='processed'):
+    bucket_name = None
+    client = boto3.client('s3')
+    bucket_list = client.list_buckets()['Buckets']
+    for bucket in bucket_list:
+        if keyword in bucket['Name']:
+            bucket_name = bucket['Name']
+    return bucket_name
