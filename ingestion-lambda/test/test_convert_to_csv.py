@@ -1,5 +1,5 @@
 from src.convert_to_csv import convert_to_csv
-from test_data.mock_ingested_data_function_output import mock_data, mock_data2
+from test_data.mock_ingested_data_function_output import *
 import os
 import shutil
 import csv
@@ -42,6 +42,16 @@ def test_column_names_exist():
     reset_folder()
 
     convert_to_csv(mock_data2)
+
+    with open("src/csv_files/payment.csv", "r") as file:
+        reader = csv.reader(file)
+        row1 = next(reader)
+        assert "payment_id" in row1
+        assert "last_updated" in row1
+
+def test_column_names_exist():
+    reset_folder()
+    convert_to_csv(mock_data3)
 
     with open("src/csv_files/payment.csv", "r") as file:
         reader = csv.reader(file)
