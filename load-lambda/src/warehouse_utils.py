@@ -26,6 +26,11 @@ def list_bucket_objects(bucket_name, latest_only=False):
         if 'Contents' in bucket_contents:
             objects = [{"name": obj['Key'],"date":obj['LastModified']} for obj in bucket_contents['Contents']]
             objects.sort(key= lambda item: item['date'], reverse= True)
+            file_times = [obj['LastModified'] for obj in bucket_contents['Contents']]
+            file_times.sort(reverse= True)
+            logger.info(f'file times: {file_times}')
+            logger.info(f'delta= {file_times[0]-file_times[1]}')
+            file_names = [obj['Key'] for obj in bucket_contents['Contents']]
             if latest_only:
                 file_names = [objects[0]['name']]
             else :
