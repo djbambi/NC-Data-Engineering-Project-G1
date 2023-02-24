@@ -12,22 +12,27 @@ logger.setLevel(logging.INFO)
 
 
 
-def list_bucket_objects(bucket_name):
+def list_bucket_objects(bucket_name, latest_only=False):
     """ the function reads the name of files(keys) in the S3 bukets
         using boto3 Client
-        Args: bucket name
-        Returns: the client and the list of filenames (s3 keys)
+        Args:   bucket name
+                latest_only - whether to return the key(s) modified latest
+        Returns: the client and the list of filenames (s3 keys),
+       
     """
     try:
         client = boto3.client('s3')
         bucket_contents = client.list_objects_v2(Bucket=bucket_name)
-        objects = []
         if 'Contents' in bucket_contents:
-            objects = [obj['Key'] for obj in bucket_contents['Contents']]
+            objects = [{"name": obj['Key'],"date":obj['LastModified']} for obj in bucket_contents['Contents']]
+            objects.sort(key= lambda item: item['date'], reverse= True)
+            if latest_only:
+                file_names = [objects[0]['name']]
+            else :
+                file_names = [obj['name'] for obj in objects]
     except Exception as e:
         logger.error(e)
-    objects.sort()
-    return client, objects
+    return client, file_names
 
 def get_bucket_objects(bucket_name):
     try:

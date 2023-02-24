@@ -64,18 +64,6 @@ def load_db_creds():
     
     return totesys_creds, warehouse_creds
 
-def connect():
-    """ small utility to test the connection to warehouse database"""
-    load_dotenv()
-    try:
-        hostname=os.environ.get('WAREHOUSE_HOST')
-        parole=os.environ.get('WAREHOUSE_PSWD')
-        conn = pg.Connection(user='project_team_1',host=hostname,password=parole,database='postgres')
-        result =conn.run('SELECT * FROM dim_currency')
-        titles = [ meta_data['name'] for meta_data in conn.columns]
-        print(f'titles: {titles}')
-    except Exception as ex:
-        print(f'error_msg: {ex}')
-    return conn 
 
-# print(load_db_creds())
+
+print(load_db_creds())
