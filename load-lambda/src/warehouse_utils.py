@@ -4,7 +4,7 @@ from pg8000.exceptions import InterfaceError, DatabaseError
 import boto3
 import logging
 import io
-import datetime as dt
+from datetime import datetime as dt
 
 
 logger = logging.getLogger('SQHellsLogger')
@@ -12,7 +12,7 @@ logger.setLevel(logging.INFO)
 
 
 
-def list_bucket_objects(bucket_name, latest_only=False):
+def list_bucket_objects(bucket_name, latest_only=False, time_tolerance=60):
     """ the function reads the name of files(keys) in the S3 bukets
         using boto3 Client
         Args:   bucket name
@@ -20,19 +20,22 @@ def list_bucket_objects(bucket_name, latest_only=False):
         Returns: the client and the list of filenames (s3 keys),
        
     """
+    file_names = []
+    objects = []
     try:
         client = boto3.client('s3')
         bucket_contents = client.list_objects_v2(Bucket=bucket_name)
         if 'Contents' in bucket_contents:
-            objects = [{"name": obj['Key'],"date":obj['LastModified']} for obj in bucket_contents['Contents']]
-            objects.sort(key= lambda item: item['date'], reverse= True)
+            objects = [{"name": obj['Key'],"datetime":obj['LastModified']} for obj in bucket_contents['Contents']]
+            objects.sort(key= lambda item: item['datetime'], reverse= True)
             file_times = [obj['LastModified'] for obj in bucket_contents['Contents']]
             file_times.sort(reverse= True)
-            logger.info(f'file times: {file_times}')
-            logger.info(f'delta= {file_times[0]-file_times[1]}')
-            file_names = [obj['Key'] for obj in bucket_contents['Contents']]
             if latest_only:
-                file_names = [objects[0]['name']]
+                for obj in objects:
+                    delta = file_times[0]-obj['datetime']
+                    if delta.total_seconds() < time_tolerance:
+                        print(delta.total_seconds())
+                        file_names.append(obj['name'])
             else :
                 file_names = [obj['name'] for obj in objects]
     except Exception as e:
@@ -158,23 +161,23 @@ def put_data_frame_to_table(db_conn, df_name, table_name):
     inserted_rows = 0
     updates_rows = 0
     format_query = f"SELECT attname, format_type(atttypid, atttypmod) AS data_type FROM pg_attribute WHERE attrelid = '{table_name}' ::regclass AND attnum >0;"
+    try:
+        format_list = db_conn.run(format_query)
+        """ boolean array contining "does this column contains date", 
+            can be passed to the make_table_query to call the TO_DATE() function where needed
+            date_format_list = [ 'date' in result[1] for result in format_list]
+            #print(date_format_list)
+        """ 
 
-    format_list = db_conn.run(format_query)
-    """ boolean array contining "does this column contains date", 
-        can be passed to the make_table_query to call the TO_DATE() function where needed
-        date_format_list = [ 'date' in result[1] for result in format_list]
-        #print(date_format_list)
-    """ 
-    if 'date' in table_name:
-            logger.info(create_dim_date_table(db_conn))
-    else:
-        id_date_format = False
-        for result in format_list:
-            id_date_format = id_date_format or ( '_id' in result[0] and 'date' in result[1] )
+        if 'date' in table_name:
+                logger.info(create_dim_date_table(db_conn))
+        else:
+            id_date_format = False
+            for result in format_list:
+                id_date_format = id_date_format or ( '_id' in result[0] and 'date' in result[1] )
 
-        for row in df_name.iterrows():
-            if not error_at_previous_row:
-                try:                
+            for row in df_name.iterrows():
+                if not error_at_previous_row:
                     query = make_table_query(df_name,table_name,row[0],type="SELECT",id_type_date=id_date_format)
                     result = db_conn.run(query)
                     if not result:
@@ -185,9 +188,10 @@ def put_data_frame_to_table(db_conn, df_name, table_name):
                         updates_rows += 1
                     result = db_conn.run(query)
 
-                except Exception as de:
-                    error_at_previous_row = True
-                    logger.error(f'database error - {de}')
+    except Exception as de:
+        error_at_previous_row = True
+        # logger.error(f'database error - {de}')
+        logger.error('database error')
     return inserted_rows, updates_rows
 
 
@@ -199,3 +203,20 @@ def find_bucket_by_keyword(keyword='processed'):
         if keyword in bucket['Name']:
             bucket_name = bucket['Name']
     return bucket_name
+
+def time_tester():
+    time_0 = dt(2023, 2, 24, 21, 0, 0)
+    time_1 = dt.today()
+    s = 0
+    for i in range(1000):
+        x = 1
+        for j in range(1000):
+            x *= j
+        s += x*i*i
+    time_2 = dt.today()
+    delta = time_2 - time_1
+    print(delta.total_seconds())
+    delta = time_2 - time_0
+    print(delta.total_seconds())
+    return delta
+#print(time_tester())
