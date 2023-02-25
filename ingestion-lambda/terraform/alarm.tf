@@ -11,15 +11,15 @@ resource "aws_cloudwatch_log_metric_filter" "ingestion_lambda_error" {
 }
 
 resource "aws_cloudwatch_metric_alarm" "alert_errors" {
-    alarm_name = "error-alarm"
+    alarm_name = "ingestion-lambda-error"
     comparison_operator = "GreaterThanOrEqualToThreshold"
     evaluation_periods = "1"
     metric_name = "errors"
-    namespace = "ingestion_lambda"
+    namespace = "ingestion-lambda"
     period = "60"
     statistic = "Sum"
     threshold = "1"
-    alarm_description = "Error detected in ingestion_lambda."
+    alarm_description = "Error detected in Ingestion Lambda."
     insufficient_data_actions = []
     alarm_actions = [ aws_sns_topic.error_notifications_topic.arn ]
 }
