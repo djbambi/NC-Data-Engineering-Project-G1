@@ -1,4 +1,4 @@
-from connection_details import con
+from src.connection_details import con
 
 ## This function converts the Database tables to big list that consists of dictionaries, each dictionry has a key of the table name and the a value of table data in a list that consisted of nested lists that represent the rows of the table  
 def ingest():

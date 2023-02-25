@@ -1,6 +1,6 @@
 from datetime import datetime
 import boto3
-from bucket_names import ingestion_bucket
+from src.bucket_names import ingestion_bucket
 
 bucket = ingestion_bucket
 timestamp_key = 'timestamp/latest-timestamp.txt'
