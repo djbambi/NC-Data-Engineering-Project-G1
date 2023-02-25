@@ -5,5 +5,5 @@ variable "ingestion_lambda_name" {
 
 variable "notifications_email" {
     type = string
-    default = "giyewav803@pubpng.com"
+    default = "totesys.errors@sqhellsangels.com"
 }
