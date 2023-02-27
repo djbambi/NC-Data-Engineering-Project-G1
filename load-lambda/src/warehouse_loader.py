@@ -3,14 +3,15 @@ import pg8000.native as pg
 import boto3
 import logging
 from botocore.exceptions import ClientError
+from botocore.response import StreamingBody
+
 from pg8000.exceptions import InterfaceError, DatabaseError
 
 from warehouse_utils import logger, list_bucket_objects, get_data_from_file, extract_table_name, put_data_frame_to_table
 
 
 #this will be put into secrets manager later
-hostname='nc-data-eng-project-dw-prod.chpsczt8h1nu.eu-west-2.rds.amazonaws.com'
-parole='5v8FmZSgQEdCxtN'
+
 
 def lambda_handler(event, context):
     """ Connects to the warehouse database
@@ -26,19 +27,18 @@ def lambda_handler(event, context):
             https://docs.aws.amazon.com/lambda/latest/dg/python-context.html
     """
     try:
-        s3_bucket_name, s3_object_name, warehouse_conn = get_warehouse_connection(event,hostname,parole)
+        # hostname, pswd = retrieve_db_secrets(db_name='totesys')
+        hostname, pswd = retrieve_db_secrets()
+        s3_bucket_name, s3_object_name, warehouse_conn = get_warehouse_connection(event,hostname,pswd)
         logger.info(f'Bucket is {s3_bucket_name}')
         s3_client, object_names = list_bucket_objects(s3_bucket_name)
         logger.info(f'Object keys are  {object_names}')
         for object_key in object_names:
             table_name = extract_table_name(object_key)
             parquet_df = get_data_from_file(s3_client, s3_bucket_name, object_key)
-            put_data_frame_to_table(warehouse_conn, parquet_df, table_name)
-            logger.info(f'Updated table: {table_name}')
-        #text = get_data_from_file(s3, s3_bucket_name, s3_object_name)
-        #s3 = boto3.client('s3')
-        # text = get_data_from_file(s3, s3_bucket_name, object_names[0])
-        # logger.info(f'file contents: {text}')
+
+            inserted_rows, updated_rows = put_data_frame_to_table(warehouse_conn, parquet_df, table_name)
+            logger.info(f'Modifed:{table_name} inserted {inserted_rows}, updated {updated_rows} rows')
 
     except ClientError as c:
         if c.response['Error']['Code'] == 'NoSuchKey':
@@ -79,3 +79,18 @@ def get_warehouse_connection(event, host_name, pswd):
         logger.error(f'connection error: {ex}')
     return s3_bucket_name, s3_object_name, conn
 
+def retrieve_db_secrets(db_name='warehouse'):
+    sm = boto3.client('secretsmanager')
+    hostname = None
+    password = None
+    try:
+        secret_id = db_name + '_host'
+        secret = sm.get_secret_value(SecretId=secret_id)
+        hostname = secret['SecretString']
+        secret_id = db_name + '_pswd'
+        secret = sm.get_secret_value(SecretId=secret_id)
+        password = secret['SecretString']
+
+    except ClientError as e:
+        logger.error("The requested secret was not found")
+    return hostname, password

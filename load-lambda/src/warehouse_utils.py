@@ -4,39 +4,43 @@ from pg8000.exceptions import InterfaceError, DatabaseError
 import boto3
 import logging
 import io
+from datetime import datetime as dt
 
-test_bucket = 'sqhells-transform-*'
+
 logger = logging.getLogger('SQHellsLogger')
 logger.setLevel(logging.INFO)
 
-def connect():
-    """ small utility to test the connection to warehouse database"""
-    try:
-        hostname='nc-data-eng-project-dw-prod.chpsczt8h1nu.eu-west-2.rds.amazonaws.com'
-        parole='5v8FmZSgQEdCxtN'
-        conn = pg.Connection(user='project_team_1',host=hostname,password=parole,database='postgres')
-        # result =conn.run('SELECT * FROM dim_currency')
-        # titles = [ meta_data['name'] for meta_data in conn.columns]
-        # print(f'titles: {titles}')
-    except Exception as ex:
-        print(f'error_msg: {ex}')
-    return conn 
 
-def list_bucket_objects(bucket_name):
+
+def list_bucket_objects(bucket_name, latest_only=False, time_tolerance=60):
     """ the function reads the name of files(keys) in the S3 bukets
         using boto3 Client
-        Args: bucket name
-        Returns: the client and the list of filenames (s3 keys)
+        Args:   bucket name
+                latest_only - whether to return the key(s) modified latest
+        Returns: the client and the list of filenames (s3 keys),
+       
     """
+    file_names = []
+    objects = []
     try:
         client = boto3.client('s3')
         bucket_contents = client.list_objects_v2(Bucket=bucket_name)
-        objects = []
         if 'Contents' in bucket_contents:
-            objects = [obj['Key'] for obj in bucket_contents['Contents']]
+            objects = [{"name": obj['Key'],"datetime":obj['LastModified']} for obj in bucket_contents['Contents']]
+            objects.sort(key= lambda item: item['datetime'], reverse= True)
+            file_times = [obj['LastModified'] for obj in bucket_contents['Contents']]
+            file_times.sort(reverse= True)
+            if latest_only:
+                for obj in objects:
+                    delta = file_times[0]-obj['datetime']
+                    if delta.total_seconds() < time_tolerance:
+                        print(delta.total_seconds())
+                        file_names.append(obj['name'])
+            else :
+                file_names = [obj['name'] for obj in objects]
     except Exception as e:
         logger.error(e)
-    return client, objects.sort()
+    return client, file_names
 
 def get_bucket_objects(bucket_name):
     try:
@@ -46,6 +50,7 @@ def get_bucket_objects(bucket_name):
         objects = [obj.key for obj in bucket.objects.all()]
     except Exception as e:
         logger.error(e)
+    objects.sort()
     return objects
 
 
@@ -116,6 +121,34 @@ def make_table_query(data_frame, table_name, row_idx, type="INSERT", id_type_dat
             query_str += f"{col_list[id_col_idx]}={data_list[id_col_idx]};"
 
     return query_str
+def create_dim_date_table(db_conn):
+    start_date_str = '2021-01-01'
+    num_days = 782
+    insert_query = """ 
+    INSERT INTO dim_date
+    SELECT
+        ts_seq AS date_id,
+        extract(year FROM ts_seq) AS year,
+        CAST(extract (month FROM ts_seq) AS INTEGER) AS month,
+        extract(day FROM ts_seq) AS day,
+        extract(isodow FROM ts_seq) AS day_of_week,
+        to_char(ts_seq, 'TMDay') AS day_name,
+        TO_CHAR(ts_seq, 'TMMonth') AS month_name,
+        extract(quarter FROM ts_seq) AS quarter
+    FROM """
+    check_query = "select COUNT(date_id) from dim_date  where year > 2020;"
+    result = db_conn.run(check_query)
+    if result[0][0] > 0 :
+        start_date_str = dt.date.today().isoformat()
+        num_days = 7
+        check_query = f"select * from dim_date where date_id=TO_DATE('{start_date_str}','YYYY-MM-DD');"
+        result = db_conn.run(check_query)
+        if len(result)>0:
+            return "dim_date table is up-to-date"
+   
+    insert_query += f" (SELECT '{start_date_str}' :: DATE + sequence.day AS ts_seq FROM GENERATE_SERIES(0, {num_days}) AS sequence(day)) dq; "
+    result = db_conn.run(insert_query)
+    return str(result)
 
 def put_data_frame_to_table(db_conn, df_name, table_name):
     """ loops through each row in the data frame provided, 
@@ -125,41 +158,65 @@ def put_data_frame_to_table(db_conn, df_name, table_name):
     logger = logging.getLogger('warehouse_loader logger')
     logger.setLevel(logging.INFO)
     error_at_previous_row = False
+    inserted_rows = 0
+    updates_rows = 0
     format_query = f"SELECT attname, format_type(atttypid, atttypmod) AS data_type FROM pg_attribute WHERE attrelid = '{table_name}' ::regclass AND attnum >0;"
+    try:
+        format_list = db_conn.run(format_query)
+        """ boolean array contining "does this column contains date", 
+            can be passed to the make_table_query to call the TO_DATE() function where needed
+            date_format_list = [ 'date' in result[1] for result in format_list]
+            #print(date_format_list)
+        """ 
 
-    format_list = db_conn.run(format_query)
-    """ boolean array contining "does this column contains date", 
-        can be passed to the make_table_query to call the TO_DATE() function where needed
-        date_format_list = [ 'date' in result[1] for result in format_list]
-        #print(date_format_list)
-    """ 
-  
-    id_date_format = False
-    for result in format_list:
-        id_date_format = id_date_format or ( '_id' in result[0] and 'date' in result[1] )
+        if 'date' in table_name:
+                logger.info(create_dim_date_table(db_conn))
+        else:
+            id_date_format = False
+            for result in format_list:
+                id_date_format = id_date_format or ( '_id' in result[0] and 'date' in result[1] )
 
-    for row in df_name.iterrows():
-        if not error_at_previous_row:
-            try:                
-                query = make_table_query(df_name,table_name,row[0],type="SELECT",id_type_date=id_date_format)
-                result = db_conn.run(query)
-                if not result:
-                    query = make_table_query(df_name, table_name,row[0],type="INSERT")
-                else:
-                    query = make_table_query(df_name, table_name,row[0],type="UPDATE",id_type_date=id_date_format)
-                result = db_conn.run(query)
-            except Exception as de:
-                error_at_previous_row = True
-                logger.error(f'database error - {de}')
-                # logger.error('database error')
+            for row in df_name.iterrows():
+                if not error_at_previous_row:
+                    query = make_table_query(df_name,table_name,row[0],type="SELECT",id_type_date=id_date_format)
+                    result = db_conn.run(query)
+                    if not result:
+                        query = make_table_query(df_name, table_name,row[0],type="INSERT")
+                        inserted_rows += 1
+                    else:
+                        query = make_table_query(df_name, table_name,row[0],type="UPDATE",id_type_date=id_date_format)
+                        updates_rows += 1
+                    result = db_conn.run(query)
 
-    return None
+    except Exception as de:
+        error_at_previous_row = True
+        # logger.error(f'database error - {de}')
+        logger.error('database error')
+    return inserted_rows, updates_rows
 
 
+def find_bucket_by_keyword(keyword='processed'):
+    bucket_name = None
+    client = boto3.client('s3')
+    bucket_list = client.list_buckets()['Buckets']
+    for bucket in bucket_list:
+        if keyword in bucket['Name']:
+            bucket_name = bucket['Name']
+    return bucket_name
 
-conn = connect()
-staff_df = pd.read_parquet('./test_data/fact_sales_order.parquet')
-#print(staff_df.head(4))
-# # for row in staff_df.iterrows():
-# #     print(row[1].to_list()[0])
-put_data_frame_to_table(conn, staff_df, 'fact_sales_order')
+def time_tester():
+    time_0 = dt(2023, 2, 24, 21, 0, 0)
+    time_1 = dt.today()
+    s = 0
+    for i in range(1000):
+        x = 1
+        for j in range(1000):
+            x *= j
+        s += x*i*i
+    time_2 = dt.today()
+    delta = time_2 - time_1
+    print(delta.total_seconds())
+    delta = time_2 - time_0
+    print(delta.total_seconds())
+    return delta
+#print(time_tester())
