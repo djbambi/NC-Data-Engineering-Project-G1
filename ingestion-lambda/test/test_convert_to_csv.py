@@ -1,4 +1,4 @@
-from convert_to_csv import convert_to_csv, writing_func
+from convert_to_csv import convert_to_csv, upload_to_s3
 from test_data.mock_ingested_data_function_output import *
 from test_data.mock_convert_to_csv_function_output import *
 import os
@@ -51,6 +51,7 @@ def test_column_names_exist():
         assert "payment_id" in row1
         assert "last_updated" in row1
 
+
 def test_column_names_exist():
     reset_folder()
     convert_to_csv(mock_data3)
@@ -63,4 +64,4 @@ def test_column_names_exist():
 
 
 def test_upload_to_s3_doesnt_error():
-    assert writing_func(test_data2, test_name2, "2022-01-01 12:00") == None
+    assert upload_to_s3(test_data2, test_name2, "2023-01-01 12:00") == 1

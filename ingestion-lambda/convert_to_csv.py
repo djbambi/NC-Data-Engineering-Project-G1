@@ -29,10 +29,10 @@ def upload_to_s3(table_rows_list, table_name, timestamp):
         my_array = []
 
         for element in row:
-            my_array.append(json.dumps(element, default=str))
+            my_array.append(json.dumps(element, default=str).strip('"'))
 
         csv_list.append(",".join(my_array))
 
     csv_string = "\n".join(csv_list)
 
-    client.put_object(Body=csv_string, Bucket=ingestion_bucket, key=bucket_key)
+    client.put_object(Body=csv_string, Bucket=ingestion_bucket, Key=bucket_key)
