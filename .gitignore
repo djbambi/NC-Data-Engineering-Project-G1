@@ -5,3 +5,4 @@ venv/
 **/*_cache
 **/*pycache
 **/terraform/.terraform/
+**/csv_files/

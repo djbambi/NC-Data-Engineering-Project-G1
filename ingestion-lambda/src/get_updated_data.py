@@ -32,17 +32,3 @@ def get_updated_data(latest_timestamp):
 
              
     return table_data
-
-
-# def get_whole_tables(tables):
-
-#     if len(tables[0]["address"]) > 0 or len(tables[0]["department"]) > 0:
-#             query = f'SELECT * FROM {tables[0]};'
-#             updated_rows = con.run(query, time = latest_timestamp)
-
-#             column_names = [name["name"] for name in con.columns]
-
-#             if len(updated_rows) > 0:
-#                 updated_rows.insert(0, column_names)
-                
-#             table_data.append({f"{tables[0]}_latest": updated_rows})

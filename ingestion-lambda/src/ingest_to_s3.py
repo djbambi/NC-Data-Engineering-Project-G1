@@ -19,10 +19,3 @@ def transfer_to_s3(table_name, folder_path):
         file_name = f'{folder_path}/{table_name}.csv'
 
     client.upload_file(file_path, ingestion_bucket, file_name)
-
-
-    # bucket = ingestion_bucket
-    # file_path = f'/tmp/{table_name}.csv'
-    # file_name = f'{folder_path}/{table_name}.csv'    
-        
-    # client.upload_file(file_path, bucket, file_name)
