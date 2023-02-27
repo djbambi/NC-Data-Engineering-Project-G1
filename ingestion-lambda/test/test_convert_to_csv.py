@@ -1,11 +1,11 @@
-from src.convert_to_csv import convert_to_csv
+from convert_to_csv import convert_to_csv
 from test_data.mock_ingested_data_function_output import *
 import os
 import shutil
 import csv
 
 dirname = os.path.dirname(__file__)
-file_path = f"{dirname}/../src/csv_files"
+file_path = f"{dirname}/../csv_files"
 
 def reset_folder():
     if os.path.exists(file_path):
@@ -54,7 +54,7 @@ def test_column_names_exist():
     reset_folder()
     convert_to_csv(mock_data3)
 
-    with open("src/csv_files/payment.csv", "r") as file:
+    with open("csv_files/payment.csv", "r") as file:
         reader = csv.reader(file)
         row1 = next(reader)
         assert "payment_id" in row1
