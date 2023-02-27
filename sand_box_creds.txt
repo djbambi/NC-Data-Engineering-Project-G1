@@ -2,3 +2,9 @@ Username: Whiz_User_81291.97186414
 Password: 440ccd59-680c-4f94-b699-556462bc6abc
 Access Key: AKIAZKHDLOQXIPT4ATZ4
 Secret Key: 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
+
+Last week
+Username: Whiz_User_81291.45900631
+Password: 82e7b75d-36be-45fa-9254-255f5608fd99
+Access Key: AKIAVDYBZDHL6YLVV35N
+Secret Access Key: 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
