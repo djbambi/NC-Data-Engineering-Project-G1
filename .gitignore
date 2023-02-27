@@ -5,4 +5,10 @@ venv/
 **/*_cache
 **/*pycache
 **/terraform/.terraform/
+<<<<<<< HEAD
 .env
+=======
+**/csv_files/
+**/.terraform*
+**/*tfstate*
+>>>>>>> 51ce083c6ee0719f6d2f0888280d917fae6a1eff

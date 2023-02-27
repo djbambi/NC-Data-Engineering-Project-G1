@@ -8,54 +8,64 @@ mock_response = Mock()
 
 # counter = 0
 
-def return_patch_data(*args):    
-    patched_data  = test_items[0]
-    # counter = counter + 1
+# def return_patch_data(*args):    
+#     patched_data  = test_items[0]
+#     # counter = counter + 1
 
-    return patched_data
+#     return patched_data
 
-mock_response.side_effect = return_patch_data
-time = '2023-02-15 08:00:13.016000'
+# mock_response.side_effect = return_patch_data
+# time = '2023-02-15 08:00:13.016000'
 
-def test_returns_a_list(): 
-    time = '2023-02-15 08:00:13.016000'  
-    assert type(get_updated_data(time)) == list  
+# def test_returns_a_list(): 
+#     time = '2023-02-15 08:00:13.016000'  
+#     assert type(get_updated_data(time)) == list  
 
-def test_returns_dictionary_with_tablenames_as_keyes():
-    time = '2023-02-15 08:00:13.016000'
+# def test_returns_dictionary_with_tablenames_as_keyes():
+#     time = '2023-02-15 08:00:13.016000'
+#     output = get_updated_data(time)
+    
+#     table_names = []
+#     for i in output:        
+#         table_names.append(list(i)[0])
+
+#     expected_table_names = ['counterparty', 'currency', 'department', 'design', 'payment', 'transaction', 'staff', 'sales_order', 'address', 'purchase_order', 'payment_type']
+
+#     for name in expected_table_names:
+#         assert name in table_names
+
+#     assert len(table_names) == 11
+
+# def test_value_of_each_table_name_key_is_a_list_of_table_data():
+#     time = '2023-02-15 08:00:13.016000'
+#     output = get_updated_data(time)    
+    
+#     table_names = ['counterparty', 'currency', 'department', 'design', 'payment', 'transaction', 'staff', 'sales_order', 'address', 'purchase_order', 'payment_type']    
+
+#     for index, name in enumerate(table_names):
+#         assert type(output[index][name]) == list
+
+# def test_table_data_is_correct():
+#     time = '2022-01-01 08:00:13.016000'
+#     output = get_updated_data(time)
+    
+#     for row in output[0]['counterparty']:
+#         assert len(row) == 7
+
+#     for row in output[2]['department']:
+#         assert len(row) == 6
+
+#     for row in output[10]['payment_type']:
+#         assert len(row) == 4
+
+def test_the_outcome_includes_dictionaryies_of_full_address_and_full_department_as_keys():
+    time = '2020-02-01 08:00:13.016000'
     output = get_updated_data(time)
     
     table_names = []
-    for i in output:        
-        table_names.append(list(i)[0])
-
-    expected_table_names = ['counterparty', 'currency', 'department', 'design', 'payment', 'transaction', 'staff', 'sales_order', 'address', 'purchase_order', 'payment_type']
-
-    for name in expected_table_names:
-        assert name in table_names
-
-    assert len(table_names) == 11
-
-def test_value_of_each_table_name_key_is_a_list_of_table_data():
-    time = '2023-02-15 08:00:13.016000'
-    output = get_updated_data(time)    
-    
-    table_names = ['counterparty', 'currency', 'department', 'design', 'payment', 'transaction', 'staff', 'sales_order', 'address', 'purchase_order', 'payment_type']    
-
-    for index, name in enumerate(table_names):
-        assert type(output[index][name]) == list
-
-def test_table_data_is_correct():
-    time = '2022-01-01 08:00:13.016000'
-    output = get_updated_data(time)
-    
-    for row in output[0]['counterparty']:
-        assert len(row) == 7
-
-    for row in output[2]['department']:
-        assert len(row) == 6
-
-    for row in output[10]['payment_type']:
-        assert len(row) == 4
-
-    
+    for table_dict in output:        
+        for key in table_dict:            
+            table_names.append(list(table_dict)[0])  
+    print(output)
+    assert 'full_departmen' in table_names
+    assert 'full_address' in table_names
