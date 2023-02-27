@@ -18,16 +18,26 @@ def get_updated_data(latest_timestamp):
 
         table_data.append({table[0]: updated_rows})
 
-
-    for table in tables_names:
-        if table[0] == "address" or table[0] == "department":
-            full_table = f'SELECT * FROM {table[0]};'            
-            table_rows = con.run(full_table)
+    # for table in tables_names:
+    #     if table[0] == "address" or table[0] == "department":
+    #         full_table = f'SELECT * FROM {table[0]};'            
+    #         table_rows = con.run(full_table)
             
-            column_names = [name["name"] for name in con.columns]            
+    #         column_names = [name["name"] for name in con.columns]            
 
-            table_rows.insert(0, column_names)
-            table_data.append({f"full_{table[0]}_table": table_rows})
+    #         table_rows.insert(0, column_names)
+    #         table_data.append({f"full_{table[0]}_table": table_rows})
 
-             
+    for table_dict in table_data:
+        for key in table_dict:
+            if key == "address" or key == "department":
+                if len(table_dict[key]) > 1:
+                    full_table = f'SELECT * FROM {key};'            
+                    table_rows = con.run(full_table)
+                    
+                    column_names = [name["name"] for name in con.columns]            
+            
+                    table_rows.insert(0, column_names)
+                    table_data.append({f"full_{key}_table": table_rows})
+
     return table_data
