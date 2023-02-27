@@ -15,4 +15,5 @@
    runtime      = "python3.9"
    timeout      = 300 
    source_code_hash = filebase64sha256("../src/lambda-deployment.zip")
+   layers = ["arn:aws:lambda:us-east-1:336392948345:layer:AWSSDKPandas-Python39:3"]
  }
