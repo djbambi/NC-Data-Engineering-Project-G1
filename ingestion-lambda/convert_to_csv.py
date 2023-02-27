@@ -1,6 +1,6 @@
 import json
 import boto3
-from bucket_names import ingestion_bucket
+from get_bucket_name import ingestion_bucket
 import re
 
 client = boto3.client("s3")

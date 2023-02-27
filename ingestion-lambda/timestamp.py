@@ -1,6 +1,6 @@
 from datetime import datetime
 import boto3
-from bucket_names import ingestion_bucket
+from get_bucket_name import ingestion_bucket
 
 timestamp_key = 'timestamp/latest_timestamp.txt'
 client = boto3.client("s3")
