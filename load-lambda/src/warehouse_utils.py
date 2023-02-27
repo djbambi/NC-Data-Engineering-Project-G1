@@ -12,7 +12,7 @@ logger.setLevel(logging.INFO)
 
 
 
-def list_bucket_objects(bucket_name, latest_only=False, time_tolerance=60):
+def list_bucket_objects(bucket_name, latest_only=False, time_tolerance=200):
     """ the function reads the name of files(keys) in the S3 bukets
         using boto3 Client
         Args:   bucket name
@@ -203,20 +203,3 @@ def find_bucket_by_keyword(keyword='processed'):
         if keyword in bucket['Name']:
             bucket_name = bucket['Name']
     return bucket_name
-
-def time_tester():
-    time_0 = dt(2023, 2, 24, 21, 0, 0)
-    time_1 = dt.today()
-    s = 0
-    for i in range(1000):
-        x = 1
-        for j in range(1000):
-            x *= j
-        s += x*i*i
-    time_2 = dt.today()
-    delta = time_2 - time_1
-    print(delta.total_seconds())
-    delta = time_2 - time_0
-    print(delta.total_seconds())
-    return delta
-#print(time_tester())
