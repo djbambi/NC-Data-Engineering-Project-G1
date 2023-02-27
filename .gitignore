@@ -5,3 +5,5 @@ venv/
 **/*_cache
 **/*pycache
 **/terraform/.terraform/
+**/.terraform*
+**/*tfstate*

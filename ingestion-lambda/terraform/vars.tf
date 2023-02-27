@@ -3,3 +3,7 @@ variable "ingestion_lambda_name" {
     default = "ingestion_lambda"
 }
 
+variable "notifications_email" {
+    type = string
+    default = "totesys.errors@sqhellsangels.com"
+}
