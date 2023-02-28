@@ -8,11 +8,11 @@ s3 = boto3.client('s3')
 
 def lambda_handler(event, context):
     # Get CSV file from ingestion bucket
-    bucket_one = "ingestion-bucket-hell-900"
-    bucket_two = "processed-bucket-hell-900"
+    bucket_one = utility_functions.find_bucket_by_keyword(keyword='ingestion')
+    bucket_two = utility_functions.find_bucket_by_keyword()
 
     time_stamp_file = s3.get_object(
-        Bucket=bucket_one, Key="timestamp.txt")
+        Bucket=bucket_one, Key="timestamp/latest_timestamp.txt")
 
     time_stamp = time_stamp_file['Body'].read().decode('utf-8').strip()
 

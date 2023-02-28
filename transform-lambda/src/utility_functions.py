@@ -103,7 +103,7 @@ def create_dim_counterparty(key, bucket, bucket_two):
     counterparty_df = pd.read_csv(counterparty_response['Body'])
 
     # GET ADDRESS
-    address_response = s3.get_object(Bucket=bucket, Key="address/address.csv")
+    address_response = s3.get_object(Bucket=bucket, Key="address/full_address_table.csv.csv")
     # READ ADDRESS
     address_df = pd.read_csv(address_response['Body'])
 
@@ -151,7 +151,7 @@ def create_dim_staff(key, bucket, bucket_two):
 
     # GET DEPARTMENTS
     departments_response = s3.get_object(
-        Bucket=bucket, Key="department/department.csv")
+        Bucket=bucket, Key="department/full_department_table.csv")
     # READ DEPARTMENTS
     departments_df = pd.read_csv(departments_response['Body'])
 
@@ -215,3 +215,12 @@ def create_dim_date(key, bucket, bucket_two):
     s3.put_object(Bucket=bucket_two,
                   Key="dim_date.parquet",
                   Body=transformed_dim_date)
+
+def find_bucket_by_keyword(keyword='processed'):
+    bucket_name = None
+    client = boto3.client('s3')
+    bucket_list = client.list_buckets()['Buckets']
+    for bucket in bucket_list:
+        if keyword in bucket['Name']:
+            bucket_name = bucket['Name']
+    return bucket_name
