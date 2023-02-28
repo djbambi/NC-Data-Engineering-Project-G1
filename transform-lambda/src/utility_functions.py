@@ -158,7 +158,7 @@ def create_dim_staff(key, bucket, bucket_two):
     df = staff_df.merge(departments_df[['department_id', 'department_name', 'location']],
                         left_on='department_id', right_on='department_id', how='left')
 
-    df = df.drop(columns=['created_at', 'last_updated'])
+    df = df.drop(columns=['created_at', 'last_updated', 'department_id'])
     df['department_name'] = df['department_name'].fillna(value="No department")
     df['location'] = df['location'].fillna(value="No location")
 
