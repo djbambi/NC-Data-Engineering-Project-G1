@@ -42,7 +42,7 @@ __Warehouse Database__: The Warehouse credentials are stored in the AWS Secrets 
 
 Example
 
-To run the pipeline, execute the following command:
+To run the pipeline, execute the following command: 
 
 Copy code
 python pipeline.py
