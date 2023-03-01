@@ -17,7 +17,7 @@ def get_sql_data(latest_timestamp):
 
     tables_names = con.run(
         "SELECT table_name FROM information_schema.tables WHERE table_schema = 'public';")
-    
+
     table_data = {}
 
     for table in tables_names:

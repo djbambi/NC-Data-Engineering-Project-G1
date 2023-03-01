@@ -1,70 +1,30 @@
 from upload_to_s3 import upload_to_s3
-# from test_data.mock_ingested_data_function_output import *
-# from test_data.mock_convert_to_csv_function_output import *
-from test_data.mock_updated_data_output import test_data
-import os
-import shutil
-import csv
+from test_data.mock_get_sql_data_output import test_data, single_test_data
+from unittest.mock import patch, Mock
+import pytest
 
-dirname = os.path.dirname(__file__)
-file_path = f"{dirname}/../csv_files"
+test_time = "2022-10-15 14:26"
+test_bucket = "my_s3_bucket"
 
 
-def reset_folder():
-    if os.path.exists(file_path):
-        shutil.rmtree(file_path)
-    os.mkdir(file_path)
+@patch("upload_to_s3.client")
+def test_returns_count_of_files_uploaded(*args):
+    assert upload_to_s3(single_test_data, test_time, test_bucket) == 1
+    assert upload_to_s3(test_data, test_time, test_bucket) == 13
 
 
-def test_writes_a_csv_file():
-    reset_folder()
-
-    upload_to_s3(test_data, "1")
-
-    assert os.path.exists(f"{file_path}/payment.csv")
+def raises_exception():
+    raise Exception()
 
 
-# def test_writes_csv_files_():
-#     reset_folder()
-
-#     convert_to_csv(mock_data)
-
-#     assert os.path.exists(f"{file_path}/payment.csv")
-#     assert os.path.exists(f"{file_path}/transaction.csv")
-#     assert os.path.exists(f"{file_path}/sales_order.csv")
+mock = Mock()
+mock.put_object.side_effect = raises_exception
 
 
-# def test_doesnt_save_empty_files():
-#     reset_folder()
+@patch("upload_to_s3.client", return_value=mock)
+def test_raises_connection_error(*args):
+    with pytest.raises(Exception) as e:
+        upload_to_s3(single_test_data, test_time, test_bucket)
 
-#     convert_to_csv(mock_data)
-
-#     assert os.path.exists(f"{file_path}/design.csv") == False
-#     assert os.path.exists(f"{file_path}/staff.csv") == False
-
-
-# def test_column_names_exist():
-#     reset_folder()
-
-#     convert_to_csv(mock_data2)
-
-#     with open(f"{file_path}/payment.csv", "r") as file:
-#         reader = csv.reader(file)
-#         row1 = next(reader)
-#         assert "payment_id" in row1
-#         assert "last_updated" in row1
-
-
-# def test_column_names_exist():
-#     reset_folder()
-#     convert_to_csv(mock_data3)
-
-#     with open("csv_files/payment.csv", "r") as file:
-#         reader = csv.reader(file)
-#         row1 = next(reader)
-#         assert "payment_id" in row1
-#         assert "last_updated" in row1
-
-
-# def test_upload_to_s3_doesnt_error():
-#     assert upload_to_s3(test_data2, test_name2, "2023-01-01 12:00") == 1
+    assert type(e.value) == ConnectionError
+    assert "Could not upload CSV files to ingestion bucket." in str(e.value)

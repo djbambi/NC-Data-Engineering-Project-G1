@@ -1,16 +1,17 @@
 import json
 import boto3
-from get_bucket_name import ingestion_bucket
 import re
 
 client = boto3.client("s3")
 
 
-def upload_to_s3(tables_dict, timestamp):
+def upload_to_s3(tables_dict, timestamp, bucket):
     """ This function takes a dictionary of table data,
     (output by get_sql_data function).
     and uploads each table to s3, to the correct key,
     and makes a folder for each table that need to be uploaded in full """
+
+    files_uploaded_count = 0
 
     for key in tables_dict.keys():
         table_rows_list = tables_dict[key]
@@ -33,7 +34,19 @@ def upload_to_s3(tables_dict, timestamp):
             comma_seperated_rows.append(",".join(stringified_rows))
 
         csv_string = "\n".join(comma_seperated_rows)
-        client.put_object(
-            Body=csv_string,
-            Bucket=ingestion_bucket,
-            Key=bucket_key)
+
+        try:
+            print(client.put_object)
+            client.put_object(
+                Body=csv_string,
+                Bucket=bucket,
+                Key=bucket_key)
+
+            files_uploaded_count += 1
+
+        except Exception:
+            raise ConnectionError(
+                "Could not upload CSV files to ingestion bucket."
+                )
+
+    return files_uploaded_count

@@ -16,7 +16,7 @@ def return_data_query(*args, time=test_time):
     if mock_connection.call_count <= 1:
         mock_connection.columns = column_names_query[0]
         return all_tables_query
-    else:   
+    else:
         mock_connection.columns = column_names_query[mock_connection.call_count - 2]
         return all_data_query[mock_connection.call_count - 2]
 
@@ -27,7 +27,7 @@ mock_connection.run.side_effect = return_data_query
 @patch.object(pg, "Connection", return_value=mock_connection)
 def test_dictionary_has_correct_keys(*args):
 
-    result = get_sql_data(test_time) 
+    result = get_sql_data(test_time)
     mock_connection.call_count = 0
 
     assert "Table1" in result
@@ -40,7 +40,7 @@ def test_dictionary_has_correct_keys(*args):
 @patch.object(pg, "Connection", return_value=mock_connection)
 def test_tables_have_correct_length(*args):
 
-    result = get_sql_data(test_time) 
+    result = get_sql_data(test_time)
     mock_connection.call_count = 0
 
     assert len(result["Table1"]) == 4
@@ -51,7 +51,7 @@ def test_tables_have_correct_length(*args):
 @patch.object(pg, "Connection", return_value=mock_connection)
 def test_tables_have_correct_contents(*args):
 
-    result = get_sql_data(test_time) 
+    result = get_sql_data(test_time)
     mock_connection.call_count = 0
 
     assert "delivery_contact" in result["Table1"][0]
@@ -66,7 +66,7 @@ def test_tables_have_correct_contents(*args):
 @patch.object(pg, "Connection", return_value=mock_connection)
 def test_returns_full_tables(*args):
 
-    result = get_sql_data(test_time) 
+    result = get_sql_data(test_time)
     mock_connection.call_count = 0
 
     assert "full_address_table" in result
@@ -75,7 +75,7 @@ def test_returns_full_tables(*args):
 
 @patch.object(pg, "Connection", return_value=mock_connection)
 def test_full_tables_should_contain_complete_table(*args):
-    result = get_sql_data(test_time) 
+    result = get_sql_data(test_time)
     mock_connection.call_count = 0
 
     assert len(result["full_address_table"]) == 31
@@ -103,7 +103,7 @@ def return_partial_query(*args, time=test_time):
     if mock_updates.call_count <= 1:
         mock_updates.columns = partial_column_names_query[0]
         return all_tables_query
-    else:   
+    else:
         mock_updates.columns = partial_column_names_query[mock_updates.call_count - 2]
         return partial_data_query[mock_updates.call_count - 2]
 
