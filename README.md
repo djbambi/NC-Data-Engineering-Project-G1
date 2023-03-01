@@ -50,4 +50,4 @@ The pipeline will ingest the data from the specified S3 bucket, transform it int
 
 ## Conclusion
 
-This data ingestion and transformation pipeline is designed to be scalable, fault-tolerant, and easily maintainable. It uses AWS Glue to transform the data into a star schema and AWS Redshift to load the data into a data warehouse. Terraform is used to provision the necessary infrastructure, including IAM roles and policies, S3 buckets, and AWS Lambda functions. With this pipeline, you can easily ingest and transform data
+This data ingestion and transformation pipeline is designed to be scalable, fault-tolerant, and easily maintainable. Terraform is used to provision the necessary infrastructure, including IAM roles and policies, S3 buckets, and AWS Lambda functions. With this pipeline, you can easily ingest and transform data
