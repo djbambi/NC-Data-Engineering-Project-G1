@@ -37,7 +37,7 @@ __Data Warehouse:__ A postgres database warehouse.
 ## Credentials
 
 __ToteSys Databse__: The hostname, port, database name, username and password need to be included in the db_connection.py file for the ingestionlambda.
-__Warehouse Database__: The Warehouse credentials are stored in the AWS Secrets Manager.
+__Warehouse Database__: The Warehouse credentials are stored in the AWS Secrets Manager
 
 
 Example
