@@ -33,4 +33,7 @@ def upload_to_s3(tables_dict, timestamp):
             comma_seperated_rows.append(",".join(stringified_rows))
 
         csv_string = "\n".join(comma_seperated_rows)
-        client.put_object(Body=csv_string, Bucket=ingestion_bucket, Key=bucket_key)
+        client.put_object(
+            Body=csv_string,
+            Bucket=ingestion_bucket,
+            Key=bucket_key)

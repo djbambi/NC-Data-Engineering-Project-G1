@@ -18,7 +18,8 @@ def create_timestamp():
 
 
 def upload_timestamp(timestamp):
-    """ Uploads a timestamp in the format output by the create_timestamp function,
+    """ Uploads a timestamp in the format output by the
+    create_timestamp function,
     in a txt file to s3 ingestion bucket """
 
     client.put_object(

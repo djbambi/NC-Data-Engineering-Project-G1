@@ -2,7 +2,6 @@ from get_sql_data import get_sql_data
 from test_data.mock_updated_data import all_tables_query, all_data_query, column_names_query
 import unittest
 from unittest.mock import patch, Mock
-from db_connection import con
 
 test_time = '2020-02-28 08:00:13.016000'
 
@@ -104,7 +103,7 @@ test_time = '2020-02-28 08:00:13.016000'
 #         assert len(row) == 4
 
 
-# def test_the_outcome_includes_dictionaryies_of_full_address_and_full_department_as_keys():
+# def test_outcome_includes_dictionaries_of_full_address_and_full_department():
 #     time = '2020-02-01 08:00:13.016000'
 #     output = get_updated_data(time)
 
@@ -127,8 +126,10 @@ def return_tables(*args, time="1"):
 def return_column_names(*args):
     return column_names_query[0]
 
+
 tables_mock = Mock(side_effect=return_tables)
 columns_mock = Mock(side_effect=return_column_names)
+
 
 class Test(unittest.TestCase):
 
@@ -140,4 +141,3 @@ class Test(unittest.TestCase):
 
         get_sql_data(test_time)
         assert 1 == 2
-
