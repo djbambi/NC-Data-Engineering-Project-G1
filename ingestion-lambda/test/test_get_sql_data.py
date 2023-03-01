@@ -1,143 +1,127 @@
 from get_sql_data import get_sql_data
-from test_data.mock_updated_data import all_tables_query, all_data_query, column_names_query
-import unittest
+from test_data.mock_queries import all_tables_query, all_data_query, column_names_query, partial_column_names_query, partial_data_query
 from unittest.mock import patch, Mock
+import pg8000.native as pg
 
 test_time = '2020-02-28 08:00:13.016000'
 
 
-# test_items = [
-#     test_names,
-#     test_counterparty,
-#     test_currency,
-#     test_department,
-#     test_design,
-#     test_payment,
-#     test_transaction,
-#     test_staff,
-#     test_sales_order,
-#     test_address,
-#     test_purchase_order,
-#     test_payment_type]
-
-# mock_response = Mock()
-
-# counter = 0
+mock_connection = Mock()
+mock_connection.call_count = 0
 
 
-# def return_patch_data(*args):
-#     patched_data = test_items[0]
-#     # counter = counter + 1
+def return_data_query(*args, time=test_time):
+    mock_connection.call_count += 1
 
-#     return patched_data
-
-
-# mock_response.side_effect = return_patch_data
-# time = '2023-02-15 08:00:13.016000'
-
-
-# def test_returns_a_list():
-#     time = '2023-02-15 08:00:13.016000'
-#     assert isinstance(get_updated_data(time), list)
-
-
-# def test_returns_dictionary_with_tablenames_as_keyes():
-#     time = '2023-02-15 08:00:13.016000'
-#     output = get_updated_data(time)
-
-#     table_names = []
-#     for i in output:
-#         table_names.append(list(i)[0])
-
-#     expected_table_names = [
-#         'counterparty',
-#         'currency',
-#         'department',
-#         'design',
-#         'payment',
-#         'transaction',
-#         'staff',
-#         'sales_order',
-#         'address',
-#         'purchase_order',
-#         'payment_type']
-
-#     for name in expected_table_names:
-#         assert name in table_names
-
-#     assert len(table_names) == 11
-
-
-# def test_value_of_each_table_name_key_is_a_list_of_table_data():
-#     time = '2023-02-15 08:00:13.016000'
-#     output = get_updated_data(time)
-
-#     table_names = [
-#         'counterparty',
-#         'currency',
-#         'department',
-#         'design',
-#         'payment',
-#         'transaction',
-#         'staff',
-#         'sales_order',
-#         'address',
-#         'purchase_order',
-#         'payment_type']
-
-#     for index, name in enumerate(table_names):
-#         assert isinstance(output[index][name], list)
-
-
-# def test_table_data_is_correct():
-#     time = '2022-01-01 08:00:13.016000'
-#     output = get_updated_data(time)
-
-#     for row in output[0]['counterparty']:
-#         assert len(row) == 7
-
-#     for row in output[2]['department']:
-#         assert len(row) == 6
-
-#     for row in output[10]['payment_type']:
-#         assert len(row) == 4
-
-
-# def test_outcome_includes_dictionaries_of_full_address_and_full_department():
-#     time = '2020-02-01 08:00:13.016000'
-#     output = get_updated_data(time)
-
-#     table_names = []
-#     for table_dict in output:
-#         for key in table_dict:
-#             table_names.append(list(table_dict)[0])
-#     assert 'full_departmen' in table_names
-#     assert 'full_address' in table_names
-
-
-def return_tables(*args, time="1"):
-    count = tables_mock.call_count
-    if count <= 1:
+    if mock_connection.call_count <= 1:
+        mock_connection.columns = column_names_query[0]
         return all_tables_query
-    else:
-        return all_data_query[0]
+    else:   
+        mock_connection.columns = column_names_query[mock_connection.call_count - 2]
+        return all_data_query[mock_connection.call_count - 2]
 
 
-def return_column_names(*args):
-    return column_names_query[0]
+mock_connection.run.side_effect = return_data_query
 
 
-tables_mock = Mock(side_effect=return_tables)
-columns_mock = Mock(side_effect=return_column_names)
+@patch.object(pg, "Connection", return_value=mock_connection)
+def test_dictionary_has_correct_keys(*args):
+
+    result = get_sql_data(test_time) 
+    mock_connection.call_count = 0
+
+    assert "Table1" in result
+    assert "design" in result
+    assert "transaction" in result
+    assert "purchase_order" in result
+    assert "payment_type" in result
 
 
-class Test(unittest.TestCase):
+@patch.object(pg, "Connection", return_value=mock_connection)
+def test_tables_have_correct_length(*args):
 
-    @patch('get_sql_data.con')
-    def test_(self, mock):
+    result = get_sql_data(test_time) 
+    mock_connection.call_count = 0
 
-        mock.run.side_effect = tables_mock
-        mock.columns.side_effect = columns_mock
+    assert len(result["Table1"]) == 4
+    assert len(result["transaction"]) == 4
+    assert len(result["payment_type"]) == 4
 
-        get_sql_data(test_time)
-        assert 1 == 2
+
+@patch.object(pg, "Connection", return_value=mock_connection)
+def test_tables_have_correct_contents(*args):
+
+    result = get_sql_data(test_time) 
+    mock_connection.call_count = 0
+
+    assert "delivery_contact" in result["Table1"][0]
+    assert "Fahey and Sons" in result["Table1"][1]
+    assert "Myra Kovacek" in result["Table1"][3]
+
+    assert "payment_type_name" in result["payment_type"][0]
+    assert 1 in result["payment_type"][1]
+    assert "PURCHASE_PAYMENT" in result["payment_type"][3]
+
+
+@patch.object(pg, "Connection", return_value=mock_connection)
+def test_returns_full_tables(*args):
+
+    result = get_sql_data(test_time) 
+    mock_connection.call_count = 0
+
+    assert "full_address_table" in result
+    assert "full_department_table" in result
+
+
+@patch.object(pg, "Connection", return_value=mock_connection)
+def test_full_tables_should_contain_complete_table(*args):
+    result = get_sql_data(test_time) 
+    mock_connection.call_count = 0
+
+    assert len(result["full_address_table"]) == 31
+    assert len(result["full_department_table"]) == 9
+
+
+@patch.object(pg, "Connection", return_value=mock_connection)
+def test_full_tables_have_correct_values(*args):
+    result = get_sql_data(test_time)
+    mock_connection.call_count = 0
+
+    assert "test_address_id" in result["full_address_table"][0]
+    assert "test_last_updated" in result["full_address_table"][0]
+    assert "test_department_id" in result["full_department_table"][0]
+    assert "test_last_updated" in result["full_department_table"][0]
+
+
+mock_updates = Mock()
+mock_updates.call_count = 0
+
+
+def return_partial_query(*args, time=test_time):
+    mock_updates.call_count += 1
+
+    if mock_updates.call_count <= 1:
+        mock_updates.columns = partial_column_names_query[0]
+        return all_tables_query
+    else:   
+        mock_updates.columns = partial_column_names_query[mock_updates.call_count - 2]
+        return partial_data_query[mock_updates.call_count - 2]
+
+
+mock_updates.run.side_effect = return_partial_query
+
+
+@patch.object(pg, "Connection", return_value=mock_updates)
+def test_ignores_empty_tables(*args):
+    result = get_sql_data(test_time)
+    mock_updates.call_count = 0
+
+    assert "Table1" not in result
+    assert "Table2" in result
+    assert "department" in result
+    assert "full_department_table" in result
+    assert "design" not in result
+    assert "address" not in result
+    assert "full_address_table" not in result
+    assert "purchase_order" in result
+    assert "payment_type" in result
