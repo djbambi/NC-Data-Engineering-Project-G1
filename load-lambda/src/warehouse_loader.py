@@ -29,16 +29,17 @@ def lambda_handler(event, context):
     try:
         # hostname, pswd = retrieve_db_secrets(db_name='totesys')
         hostname, pswd = retrieve_db_secrets()
-        s3_bucket_name, s3_object_name, warehouse_conn = get_warehouse_connection(event,hostname,pswd)
+        s3_bucket_name, warehouse_conn = get_warehouse_connection(event,hostname,pswd)
         logger.info(f'Bucket is {s3_bucket_name}')
         s3_client, object_names = list_bucket_objects(s3_bucket_name)
         logger.info(f'Object keys are  {object_names}')
-        for object_key in object_names:
-            table_name = extract_table_name(object_key)
-            parquet_df = get_data_from_file(s3_client, s3_bucket_name, object_key)
-
-            inserted_rows, updated_rows = put_data_frame_to_table(warehouse_conn, parquet_df, table_name)
-            logger.info(f'Modifed:{table_name} inserted {inserted_rows}, updated {updated_rows} rows')
+        if (len(object_names)>6):
+            for object_key in object_names:
+                table_name = extract_table_name(object_key)
+                parquet_df = get_data_from_file(s3_client, s3_bucket_name, object_key)
+                parquet_df.replace("'",'',inplace=True, regex=True)
+                inserted_rows, updated_rows = put_data_frame_to_table(warehouse_conn, parquet_df, table_name)
+                logger.info(f'Modifed:{table_name} inserted {inserted_rows}, updated {updated_rows} rows')
 
     except ClientError as c:
         if c.response['Error']['Code'] == 'NoSuchKey':
@@ -63,11 +64,12 @@ def get_warehouse_connection(event, host_name, pswd):
         raises exceptions if s3 or postgress errors occur and logs them 
         Args: event: a valid EventBridge event 
         Returns: a tuple of Bucket name, object name and connection"""
+    s3_bucket_name = ''
     try:
-        s3_bucket_name, s3_object_name = get_object_path(event['Records'])
+        logger.info(f"event is {event['Records']}")
     except ClientError as c:
         if c.response['Error']['Code'] == 'NoSuchKey':
-            logger.error(f'No object found - {s3_object_name}')
+            logger.error(f'No object found ')
         elif c.response['Error']['Code'] == 'NoSuchBucket':
             logger.error(f'No such bucket - {s3_bucket_name}')
     try: 
@@ -77,7 +79,7 @@ def get_warehouse_connection(event, host_name, pswd):
         # logger.info(f'titles: {titles}')
     except Exception as ex:
         logger.error(f'connection error: {ex}')
-    return s3_bucket_name, s3_object_name, conn
+    return s3_bucket_name, conn
 
 def retrieve_db_secrets(db_name='warehouse'):
     sm = boto3.client('secretsmanager')

@@ -5,7 +5,8 @@ import boto3
 import logging
 import io
 from datetime import datetime as dt
-
+from dotenv import load_dotenv
+import os
 
 logger = logging.getLogger('SQHellsLogger')
 logger.setLevel(logging.INFO)
@@ -38,6 +39,7 @@ def list_bucket_objects(bucket_name, latest_only=False, time_tolerance=200):
                         file_names.append(obj['name'])
             else :
                 file_names = [obj['name'] for obj in objects]
+            file_names.sort()
     except Exception as e:
         logger.error(e)
     return client, file_names
@@ -80,12 +82,14 @@ def make_table_query(data_frame, table_name, row_idx, type="INSERT", id_type_dat
     the specified table using the data from dataframe """
     query_str = ""
     col_list = data_frame.columns.to_list()
+    if 'fact' in table_name:
+        logger.info(f"colums: {col_list}")
     data_list = data_frame.iloc[row_idx].to_list()
     zip_data_list = list(zip(col_list, data_list))
     # just in case, find the first _id column, if does not exist, use 1st
-    id_col_idx = 0
+    id_col_idx = -1
     i = 0
-    while id_col_idx ==0 and i < len(col_list):
+    while id_col_idx < 0 and i < len(col_list):
         if '_id' in col_list[i]:
             id_col_idx = i
         i += 1
@@ -123,7 +127,7 @@ def make_table_query(data_frame, table_name, row_idx, type="INSERT", id_type_dat
     return query_str
 def create_dim_date_table(db_conn):
     start_date_str = '2021-01-01'
-    num_days = 782
+    num_days = 2000
     insert_query = """ 
     INSERT INTO dim_date
     SELECT
@@ -136,18 +140,21 @@ def create_dim_date_table(db_conn):
         TO_CHAR(ts_seq, 'TMMonth') AS month_name,
         extract(quarter FROM ts_seq) AS quarter
     FROM """
-    check_query = "select COUNT(date_id) from dim_date  where year > 2020;"
+    check_query = "select COUNT(date_id) from dim_date where year > 2020;"
     result = db_conn.run(check_query)
     if result[0][0] > 0 :
-        start_date_str = dt.date.today().isoformat()
-        num_days = 7
+        td = dt.today()
+        start_date_str = td.today().isoformat()
+        num_days = 72
         check_query = f"select * from dim_date where date_id=TO_DATE('{start_date_str}','YYYY-MM-DD');"
         result = db_conn.run(check_query)
-        if len(result)>0:
+        if len(result) > 0:
             return "dim_date table is up-to-date"
-   
+
     insert_query += f" (SELECT '{start_date_str}' :: DATE + sequence.day AS ts_seq FROM GENERATE_SERIES(0, {num_days}) AS sequence(day)) dq; "
     result = db_conn.run(insert_query)
+    check_query = "select COUNT(date_id) from dim_date  where year > 2020;"
+    result = db_conn.run(check_query)
     return str(result)
 
 def put_data_frame_to_table(db_conn, df_name, table_name):
@@ -168,7 +175,10 @@ def put_data_frame_to_table(db_conn, df_name, table_name):
             date_format_list = [ 'date' in result[1] for result in format_list]
             #print(date_format_list)
         """ 
-
+        # if 'fact' in table_name:
+        #     alter_query = "ALTER TABLE {table_name} DISABLE TRIGGER ALL;"
+        #     #when done alter_query = "ALTER TABLE {table_name} ENABLE TRIGGER ALL;"
+            
         if 'date' in table_name:
                 logger.info(create_dim_date_table(db_conn))
         else:
@@ -190,10 +200,14 @@ def put_data_frame_to_table(db_conn, df_name, table_name):
 
     except Exception as de:
         error_at_previous_row = True
-        # logger.error(f'database error - {de}')
-        logger.error('database error')
+        logger.error(f'database error - {de}')
     return inserted_rows, updates_rows
 
+
+""" This utility finds the S3 bucket for ingested or processed data
+    using the agreed keys for  the bucket name prefix
+    Args: keyword
+"""
 
 def find_bucket_by_keyword(keyword='processed'):
     bucket_name = None
@@ -203,3 +217,4 @@ def find_bucket_by_keyword(keyword='processed'):
         if keyword in bucket['Name']:
             bucket_name = bucket['Name']
     return bucket_name
+

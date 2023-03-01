@@ -11,19 +11,19 @@ resource "aws_s3_bucket" "data_bucket_two" {
 
 resource "aws_s3_object" "ingestion_lambda_code" {
   bucket = aws_s3_bucket.code_bucket.bucket
-  key = "s3_file_loader/ingestion_function.zip"
+  key = "ingestion/ingestion_function.zip"
   source = "${path.module}/ingestion_function.zip"
 }
 
 resource "aws_s3_object" "transform_lambda_code" {
   bucket = aws_s3_bucket.code_bucket.bucket
-  key = "s3_file_loader/transform_function.zip"
+  key = "transform/transform_function.zip"
   source = "${path.module}/transform_function.zip"
 }
 
 resource "aws_s3_object" "loader_lambda_code" {
   bucket = aws_s3_bucket.code_bucket.bucket
-  key = "s3_file_loader/loader_function.zip"
+  key = "loader/loader_function.zip"
   source = "${path.module}/loader_function.zip"
 }
 
