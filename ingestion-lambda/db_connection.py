@@ -7,5 +7,5 @@ database = 'totesys'
 user = 'project_user_1'
 password = 'Zwec2EPvgedMGtT9ATGQFnDz'
 
-## API Connection
-con = pg.Connection(user, host = host, database ='totesys', password=password)
+# API Connection
+con = pg.Connection(user, host=host, database='totesys', password=password)

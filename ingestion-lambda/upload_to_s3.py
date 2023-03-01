@@ -1,21 +1,37 @@
+import json
 import boto3
 from get_bucket_name import ingestion_bucket
+import re
 
-client = boto3.client('s3')
+client = boto3.client("s3")
 
-# Function to upload a csv file to s3, file will be stored in the /tmp folder on the lambda, and uploaded from there, should be called in a loop for each csv file, puts the files in a folder containing the date and the time which should be created when the lambda is first run, time should not end in /
-def upload_to_s3(table_name, folder_path):
+"""This function takes a dictionaries of table data,
+(output by get_updated_data function).
+and uploads each table to s3, to the correct key,
+and makes a key for the tables that need to be uploaded in full """
 
-    if table_name == "full_address_table":
-        file_path = f'/tmp/{table_name}.csv'
-        file_name = f'address/{table_name}.csv'
 
-    elif table_name == "full_department_table":
-        file_path = f'/tmp/{table_name}.csv'
-        file_name = f'department/{table_name}.csv'
+def upload_to_s3(tables_dict, timestamp):
 
-    else:
-        file_path = f'/tmp/{table_name}.csv'
-        file_name = f'{folder_path}/{table_name}.csv'
+    for key in tables_dict.keys():
+        table_rows_list = tables_dict[key]
+        table_name = key
 
-    client.upload_file(file_path, ingestion_bucket, file_name)
+        bucket_key = f"{timestamp}/{table_name}.csv"
+        if "full" in table_name:
+            name_search = re.search("full_(.*)_table", table_name)
+            extracted_name = name_search.group(1)
+            bucket_key = f"{extracted_name}/{table_name}.csv"
+
+        comma_seperated_rows = []
+
+        for row in table_rows_list:
+            stringified_rows = []
+
+            for element in row:
+                stringified_rows.append(json.dumps(element, default=str))
+
+            comma_seperated_rows.append(",".join(stringified_rows))
+
+        csv_string = "\n".join(comma_seperated_rows)
+        client.put_object(Body=csv_string, Bucket=ingestion_bucket, Key=bucket_key)
