@@ -4,7 +4,7 @@ import pandas as pd
 # create clients
 s3 = boto3.client('s3')
 
-'''Finds the bucket name of an S3 bucket using a keyword'''
+'''This function finds the bucket name of an S3 bucket using a keyword'''
 def find_bucket_by_keyword(keyword='processed'):
     bucket_name = None
     client = boto3.client('s3')

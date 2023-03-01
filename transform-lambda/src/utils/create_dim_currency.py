@@ -5,7 +5,7 @@ import ccy
 # create clients
 s3 = boto3.client('s3')
 
-'''Creates a dim currency table - Key is the name the CSV in the S3 bucket to be transformed to parquet. Bucket is the S3 ingestion bucket the CSV file is taken from. bucket_two is the S3 processes bucket the parquet file is uploaded to'''
+'''This function creates a dim currency table - Key is the name the CSV in the S3 bucket to be transformed to parquet. Bucket is the S3 ingestion bucket the CSV file is taken from. bucket_two is the S3 processes bucket the parquet file is uploaded to'''
 def create_dim_currency(key, bucket, bucket_two):
     # Get currency CSV file from the ingestion bucket
     response = s3.get_object(Bucket=bucket, Key=key)

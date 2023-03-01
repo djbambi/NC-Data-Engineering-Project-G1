@@ -4,7 +4,7 @@ import pandas as pd
 # create clients
 s3 = boto3.client('s3')
 
-'''Creates a fact sales order table - Key is the name the CSV in the S3 bucket to be transformed to parquet. Bucket is the S3 ingestion bucket the CSV file is taken from. bucket_two is the S3 processes bucket the parquet file is uploaded to'''
+'''This function creates a fact sales order table - Key is the name the CSV in the S3 bucket to be transformed to parquet. Bucket is the S3 ingestion bucket the CSV file is taken from. bucket_two is the S3 processes bucket the parquet file is uploaded to'''
 def create_fact_sales_order(key, bucket, bucket_two):
     # Get sales_order CSV file from the ingestion bucket
     response = s3.get_object(Bucket=bucket, Key=key)
