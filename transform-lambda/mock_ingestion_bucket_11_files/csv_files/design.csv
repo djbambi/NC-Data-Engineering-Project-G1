@@ -1,6 +1,0 @@
-design_id,created_at,design_name,file_location,file_name,last_updated
-1,2022-11-03 14:20:49.962000,Wooden,/home/user/dir,wooden-20201128-jdvi.json,2022-11-03 14:20:49.962000
-5,2022-11-03 14:20:49.962000,Granite,/root,granite-20220419-b6n4.json,2022-11-03 14:20:49.962000
-8,2022-11-03 14:20:49.962000,Wooden,/usr,wooden-20220717-npgz.json,2022-11-03 14:20:49.962000
-9,2022-11-03 14:20:49.962000,Concrete,/etc,concrete-20211012-auw9.json,2022-11-03 14:20:49.962000
-50,2023-01-12 16:31:09.694000,Granite,/private/var,granite-20220205-3vfw.json,2023-01-12 16:31:09.694000
