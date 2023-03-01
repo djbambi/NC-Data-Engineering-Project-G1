@@ -2,7 +2,7 @@
 resource "aws_cloudwatch_event_rule" "ingestion_lambda_scheduler-" {
     name_prefix = "ingestion_lambda_scheduler-"
     description = "Schedule for the ingestion Lambda Function"
-    schedule_expression = "rate(3 minutes)"
+    schedule_expression = "rate(5 minutes)"
 }
 
 resource "aws_cloudwatch_event_target" "schedule__ingestion_lambda" {
