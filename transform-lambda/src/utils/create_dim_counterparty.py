@@ -12,7 +12,7 @@ def create_dim_counterparty(key, bucket, bucket_two):
     counterparty_df = pd.read_csv(counterparty_response['Body'])
 
     # Get address CSV file from the ingestion bucket
-    address_response = s3.get_object(Bucket=bucket, Key="address/full_address_table.csv.csv")
+    address_response = s3.get_object(Bucket=bucket, Key="address/full_address_table.csv")
     # Read address CSV file
     address_df = pd.read_csv(address_response['Body'])
 
