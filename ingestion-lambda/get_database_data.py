@@ -32,6 +32,8 @@ def get_database_data(latest_timestamp):
         if table[0] in full_tables:
             full_table = f'SELECT * FROM {table[0]};'
             updated_rows = con.run(full_table)
+            column_names = [name["name"] for name in con.columns]
+            updated_rows.insert(0, column_names)
             table_data[f"full_{table[0]}_table"] = updated_rows
 
     return table_data
