@@ -2,11 +2,11 @@ import boto3
 
 client = boto3.client("s3")
 
-"""Bucket has a random suffix which needs to be found,
-this function searches s3 for a bucket which contains a keyword"""
-
 
 def find_bucket_by_keyword(keyword):
+    """ Bucket has a random suffix which needs to be found,
+    this function searches s3 for a bucket which contains a keyword """
+
     bucket_name = None
 
     bucket_list = client.list_buckets()["Buckets"]

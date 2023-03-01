@@ -1,4 +1,4 @@
-from timestamp import create_timestamp, retrieve_timestamp, upload_timestamp
+from timestamp import create_timestamp, retrieve_timestamp
 from datetime import datetime
 import unittest
 from unittest.mock import patch, Mock

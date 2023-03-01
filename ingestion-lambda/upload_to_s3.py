@@ -5,13 +5,12 @@ import re
 
 client = boto3.client("s3")
 
-"""This function takes a dictionaries of table data,
-(output by get_updated_data function).
-and uploads each table to s3, to the correct key,
-and makes a key for the tables that need to be uploaded in full """
-
 
 def upload_to_s3(tables_dict, timestamp):
+    """ This function takes a dictionary of table data,
+    (output by get_sql_data function).
+    and uploads each table to s3, to the correct key,
+    and makes a folder for each table that need to be uploaded in full """
 
     for key in tables_dict.keys():
         table_rows_list = tables_dict[key]
@@ -34,4 +33,7 @@ def upload_to_s3(tables_dict, timestamp):
             comma_seperated_rows.append(",".join(stringified_rows))
 
         csv_string = "\n".join(comma_seperated_rows)
-        client.put_object(Body=csv_string, Bucket=ingestion_bucket, Key=bucket_key)
+        client.put_object(
+            Body=csv_string,
+            Bucket=ingestion_bucket,
+            Key=bucket_key)
