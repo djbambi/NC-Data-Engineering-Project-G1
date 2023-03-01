@@ -19,7 +19,7 @@ def load_db_creds():
         "host": os.environ.get('WAREHOUSE_HOST'), 
         "user":'project_team_1', 
         "password": os.environ.get('WAREHOUSE_PSWD'),
-        "database": 'postgress'}
+        "database": 'postgres'}
     totesys_creds = {
         "host": os.environ.get('TOTESYS_HOST'), 
         "user": 'project_user_1', 

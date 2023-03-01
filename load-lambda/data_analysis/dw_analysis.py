@@ -49,13 +49,26 @@ def plot_sales_by_time(dw_conn, category='year'):
     print(df_fact.head(5))
 
     #fig,(ax1,ax2) = plt.subplots(1,2,figsize =(12,5))
-    fig = plt.figure(figsize =(12,7))
+    sns.set_theme()  
+    fig = plt.figure(figsize =(12,8))
     ax1 = fig.add_subplot(212)
     ax2 = fig.add_subplot(221)
     ax3 = fig.add_subplot(222)
+  
+    # #other palletes
+    # sns.color_palette("Spectral", as_cmap=True)
+    # default:
+    # sns.color_palette()
+    sns.color_palette("Set2")
 
+    
     sns.boxplot(data=df_fact,x='year',y='sub_total',ax=ax3)
+
+    sns.color_palette("cubehelix", as_cmap=True)
     sns.boxplot(data=df_fact,x='month',y='sub_total',ax=ax2)
+    
+    sns.color_palette("magma", as_cmap=True)
+
     sns.boxplot(data=df_fact,x='day',y='sub_total',ax=ax1)
     ax3.set_xlabel('Year')
     ax3.set_ylabel('Sales value')
@@ -69,7 +82,37 @@ def plot_sales_by_time(dw_conn, category='year'):
     ax1.set_ylabel('Sales value')
     ax1.set_title ("Day-wise Trend ")
 
-    fig.savefig('./results/sales_time_trends.svg',format = 'svg')
+    fig.savefig('./results/sales_time_trends_2.svg',format = 'svg')
     plt.show()
     return len(df_fact)
-plot_sales_by_time(conn,category='day')
+
+def plot_design_popularity(dw_conn):
+    query = text('SELECT design_id, design_name, file_name FROM dim_design ORDER BY design_id')
+    df_design = df_fact = pd.read_sql_query(query,dw_conn)
+    print(df_design.head(10)) 
+    print(df_design.tail(10)) 
+
+    # query = text(f'SELECT design_id, SUM(units_sold) as popularity FROM fact_sales_order \
+    #              JOIN dim_location  ON fact_sales_order.agreed_delivery_location_id = dim_location.location_id \
+    #              GROUP BY fact_sales_order.design_id')
+    # query = text(f'SELECT design_id, units_sold, country FROM fact_sales_order \
+    #               JOIN dim_location  ON fact_sales_order.agreed_delivery_location_id = dim_location.location_id \
+    #               ORDER BY fact_sales_order.design_id')
+    query = text(f'SELECT design_name, SUM(units_sold) as popularity FROM fact_sales_order \
+                JOIN dim_design  ON fact_sales_order.design_id = dim_design.design_id \
+                 GROUP BY design_name')
+    df_fact = pd.read_sql_query(query,dw_conn)
+
+    print(df_fact.head(10))
+    print(df_fact.tail(10))
+    labels = df_fact['design_name']
+    sizes = df_fact['popularity']
+
+    fig, ax = plt.subplots()
+    ax.pie(sizes, labels=labels,autopct='%1.1f%%')
+    ax.set_title ("Totesys Design Style Popularity ")
+    fig.savefig('./results/design_popularity_pie_chart.svg',format = 'svg')
+    plt.show()
+    pass
+# plot_sales_by_time(conn,category='day')
+plot_design_popularity(conn)
