@@ -1,4 +1,4 @@
-from get_database_data import get_database_data
+from get_sql_data import get_sql_data
 from test_data.mock_updated_data import all_tables_query, all_data_query, column_names_query
 import unittest
 from unittest.mock import patch, Mock
@@ -132,12 +132,12 @@ columns_mock = Mock(side_effect=return_column_names)
 
 class Test(unittest.TestCase):
 
-    @patch('get_database_data.con')
+    @patch('get_sql_data.con')
     def test_(self, mock):
 
         mock.run.side_effect = tables_mock
         mock.columns.side_effect = columns_mock
 
-        get_database_data(test_time)
+        get_sql_data(test_time)
         assert 1 == 2
 

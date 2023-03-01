@@ -4,6 +4,9 @@ from upload_to_s3 import upload_to_s3
 
 
 def lambda_handler(event, context):
+    """Function that will be called by the lambda in AWS
+    takes all functions and calls them in the correct order"""
+    
     latest_timestamp = retrieve_timestamp()
 
     timestamp = create_timestamp()
