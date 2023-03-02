@@ -36,7 +36,6 @@ def upload_to_s3(tables_dict, timestamp, bucket):
         csv_string = "\n".join(comma_seperated_rows)
 
         try:
-            print(client.put_object)
             client.put_object(
                 Body=csv_string,
                 Bucket=bucket,
