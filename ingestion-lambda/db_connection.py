@@ -8,4 +8,5 @@ user = 'project_user_1'
 password = 'Zwec2EPvgedMGtT9ATGQFnDz'
 
 # API Connection
-con = pg.Connection(user, host=host, database='totesys', password=password)
+def warehouse_connection():
+    return pg.Connection(user, host=host, database='totesys', password=password)

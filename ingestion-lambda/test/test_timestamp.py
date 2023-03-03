@@ -6,6 +6,8 @@ import json
 from botocore.response import StreamingBody
 import io
 
+test_bucket = "my_s3_bucket"
+
 body_json = '2023-02-22 11:51'
 
 body_encoded = json.dumps(body_json).encode('utf-8')
@@ -40,11 +42,11 @@ class Test(unittest.TestCase):
         boto3_mock.get_object = Mock(return_value=mocked_response)
         boto3_mock.list_objects = Mock(return_value=mocked_list_response)
 
-        assert retrieve_timestamp().strip('"') == "2023-02-22 11:51"
+        assert retrieve_timestamp(test_bucket).strip('"') == "2023-02-22 11:51"
 
     @patch('timestamp.client')
     def test_retrieve_timestamp_returns_default_if_invalid_response(
             self, boto3_mock):
         boto3_mock.list_objects = Mock(return_value=mocked_list_error_response)
 
-        assert retrieve_timestamp() == "2020-01-01 00:00"
+        assert retrieve_timestamp(test_bucket) == "2020-01-01 00:00"

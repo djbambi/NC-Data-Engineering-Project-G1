@@ -16,6 +16,3 @@ def find_bucket_by_keyword(keyword):
             bucket_name = bucket["Name"]
 
     return bucket_name
-
-
-ingestion_bucket = find_bucket_by_keyword("ingestion")

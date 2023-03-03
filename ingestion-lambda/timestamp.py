@@ -1,6 +1,5 @@
 from datetime import datetime
 import boto3
-from get_bucket_name import ingestion_bucket
 
 timestamp_key = 'timestamp/latest_timestamp.txt'
 client = boto3.client("s3")
@@ -17,27 +16,27 @@ def create_timestamp():
     return timestamp
 
 
-def upload_timestamp(timestamp):
+def upload_timestamp(timestamp, bucket):
     """ Uploads a timestamp in the format output by the
     create_timestamp function,
     in a txt file to s3 ingestion bucket """
 
     client.put_object(
         Body=timestamp,
-        Bucket=ingestion_bucket,
+        Bucket=bucket,
         Key=timestamp_key)
 
 
-def retrieve_timestamp():
+def retrieve_timestamp(bucket):
     """ Retrieves latest timestamp from the
     timestamp folder in the s3 ingestion bucket.
     If not found, returns a timestamp to
     be used as an initial ingestion """
 
-    result = client.list_objects(Bucket=ingestion_bucket, Prefix="timestamp/")
+    result = client.list_objects(Bucket=bucket, Prefix="timestamp/")
 
     if 'Contents' in result:
-        data = client.get_object(Bucket=ingestion_bucket, Key=timestamp_key)
+        data = client.get_object(Bucket=bucket, Key=timestamp_key)
         latest_timestamp = data["Body"].read().decode()
         return latest_timestamp
 
