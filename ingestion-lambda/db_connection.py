@@ -7,7 +7,7 @@ database = 'totesys'
 user = 'project_user_1'
 
 
-def retrieve_db_secrets(db_name='warehouse'):
+def retrieve_db_secrets(db_name=database):
     """ This function retrieves the hostname and password
     required for the connection to the database
     which have been stored in AWS secrets manager """
