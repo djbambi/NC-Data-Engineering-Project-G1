@@ -28,10 +28,12 @@ requirements: create-environment
 # Tests for security, pep8 compliance, and unit-testing
 security-test:
 	$(call execute_in_env, safety check -r ./requirements.txt)
-	$(call execute_in_env, bandit -lll ingestion-lambda/*/*.py)
+	$(call execute_in_env, bandit -lll ingestion-lambda/*.py ingestion-lambda/test/*.py)
+	$(call execute_in_env, bandit -lll load-lambda/*/*.py)
+	$(call execute_in_env, bandit -lll transform-lambda/*/*.py transform-lambda/*/*/*.py)
 
 run-flake:
-	$(call execute_in_env, flake8 ./ingestion-lambda)
+	$(call execute_in_env, flake8 ./ingestion-lambda/*.py ./ingestion-lambda/test/*.py)
 	$(call execute_in_env, flake8 ./transform-lambda)
 	$(call execute_in_env, flake8 ./load-lambda)
 

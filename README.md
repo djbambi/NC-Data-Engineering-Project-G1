@@ -49,7 +49,11 @@ __Warehouse Database__: The Warehouse credentials are stored in the AWS Secrets 
 
 ## Makefile
 
-The makefile will setup the relevant environment and also install dependencies from the 'requirements.txt' file. ????How is it ran????
+The makefile will setup the relevant environment and install dependencies from the 'requirements.txt' file. It will also check for security vulnerabilities, pep8 compliance, and run unit-tests.  
+__Usage__:
+From the root directory, the following commands can be run:
+- 'make' or 'make create-environment' will create a virtual environment with the correct python version (3.9), and install all dependencies from the 'requirements.txt' file
+- 'make run-checks' will run security tests using safety and bandit, run flake8, and run all pytest unit-tests. These comands will run for each of the 3 lambda folders. The commands can also be run separately using 'make security-test', 'make run-flake', or 'make unit-test'.
 
 
 ## Conclusion
