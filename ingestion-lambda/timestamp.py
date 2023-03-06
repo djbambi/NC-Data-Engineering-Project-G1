@@ -21,10 +21,14 @@ def upload_timestamp(timestamp, bucket):
     create_timestamp function,
     in a txt file to s3 ingestion bucket """
 
-    client.put_object(
-        Body=timestamp,
-        Bucket=bucket,
-        Key=timestamp_key)
+    try:
+        client.put_object(
+            Body=timestamp,
+            Bucket=bucket,
+            Key=timestamp_key)
+
+    except Exception:
+        raise ConnectionError("Could not upload timestamp to S3.")
 
 
 def retrieve_timestamp(bucket):
@@ -35,10 +39,13 @@ def retrieve_timestamp(bucket):
 
     result = client.list_objects(Bucket=bucket, Prefix="timestamp/")
 
-    if 'Contents' in result:
+    if 'Contents' not in result:
+        return "2020-01-01 00:00"
+
+    try:
         data = client.get_object(Bucket=bucket, Key=timestamp_key)
         latest_timestamp = data["Body"].read().decode()
         return latest_timestamp
 
-    else:
-        return "2020-01-01 00:00"
+    except Exception:
+        raise ConnectionError("Could not retrieve timestamp from S3.")
