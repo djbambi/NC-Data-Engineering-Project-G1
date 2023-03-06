@@ -43,8 +43,8 @@ Cloudwatch - each Lambda has a Log group which log progress and any errors that 
 
 ## Credentials
 
-__ToteSys Databse__: The hostname, port, database name, username and password need to be included in the db_connection.py file for the ingestionlambda.
-__Warehouse Database__: The Warehouse credentials are stored in the AWS Secrets Manager
+__ToteSys Databse__: The hostname, database name, username and password are needed for the ingestionlambda, hostname and password are stored in the AWS Secrets Manager, they are retrieved, and a connection is returned from the db_connection.py file.
+__Warehouse Database__: The Warehouse credentials are stored in the AWS Secrets Manager.
 
 
 ## Makefile
