@@ -9,7 +9,11 @@ def find_bucket_by_keyword(keyword):
 
     bucket_name = None
 
-    bucket_list = client.list_buckets()["Buckets"]
+    try:
+        bucket_list = client.list_buckets()["Buckets"]
+
+    except Exception:
+        raise ConnectionError("Could not find ingestion bucket")
 
     for bucket in bucket_list:
         if keyword in bucket["Name"]:

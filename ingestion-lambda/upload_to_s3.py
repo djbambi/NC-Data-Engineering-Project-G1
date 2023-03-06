@@ -9,7 +9,8 @@ def upload_to_s3(tables_dict, timestamp, bucket):
     """ This function takes a dictionary of table data,
     (output by get_sql_data function).
     and uploads each table to s3, to the correct key,
-    and makes a folder for each table that need to be uploaded in full """
+    and makes a folder for each table that need to be uploaded in full
+    it counts and returns the number of files uploaded """
 
     files_uploaded_count = 0
 

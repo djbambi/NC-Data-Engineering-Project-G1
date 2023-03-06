@@ -16,7 +16,8 @@ def get_sql_data(latest_timestamp):
     con = warehouse_connection()
 
     tables_names = con.run(
-        "SELECT table_name FROM information_schema.tables WHERE table_schema = 'public';")
+        """SELECT table_name FROM information_schema.tables
+        WHERE table_schema = 'public';""")
 
     table_data = {}
 

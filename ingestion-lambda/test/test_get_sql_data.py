@@ -1,10 +1,9 @@
 from get_sql_data import get_sql_data
-from test_data.mock_queries import all_tables_query, all_data_query, column_names_query, partial_column_names_query, partial_data_query
+from test_data.mock_queries import all_tables_query, all_data_query, \
+    column_names_query, partial_column_names_query, partial_data_query
 from unittest.mock import patch, Mock
-import pg8000.native as pg
 
 test_time = '2020-02-28 08:00:13.016000'
-
 
 mock_connection = Mock()
 mock_connection.call_count = 0
@@ -17,14 +16,15 @@ def return_data_query(*args, time=test_time):
         mock_connection.columns = column_names_query[0]
         return all_tables_query
     else:
-        mock_connection.columns = column_names_query[mock_connection.call_count - 2]
+        mock_connection.columns = \
+            column_names_query[mock_connection.call_count - 2]
         return all_data_query[mock_connection.call_count - 2]
 
 
 mock_connection.run.side_effect = return_data_query
 
 
-@patch.object(pg, "Connection", return_value=mock_connection)
+@patch("get_sql_data.warehouse_connection", return_value=mock_connection)
 def test_dictionary_has_correct_keys(*args):
 
     result = get_sql_data(test_time)
@@ -37,7 +37,7 @@ def test_dictionary_has_correct_keys(*args):
     assert "payment_type" in result
 
 
-@patch.object(pg, "Connection", return_value=mock_connection)
+@patch("get_sql_data.warehouse_connection", return_value=mock_connection)
 def test_tables_have_correct_length(*args):
 
     result = get_sql_data(test_time)
@@ -48,7 +48,7 @@ def test_tables_have_correct_length(*args):
     assert len(result["payment_type"]) == 4
 
 
-@patch.object(pg, "Connection", return_value=mock_connection)
+@patch("get_sql_data.warehouse_connection", return_value=mock_connection)
 def test_tables_have_correct_contents(*args):
 
     result = get_sql_data(test_time)
@@ -63,7 +63,7 @@ def test_tables_have_correct_contents(*args):
     assert "PURCHASE_PAYMENT" in result["payment_type"][3]
 
 
-@patch.object(pg, "Connection", return_value=mock_connection)
+@patch("get_sql_data.warehouse_connection", return_value=mock_connection)
 def test_returns_full_tables(*args):
 
     result = get_sql_data(test_time)
@@ -73,7 +73,7 @@ def test_returns_full_tables(*args):
     assert "full_department_table" in result
 
 
-@patch.object(pg, "Connection", return_value=mock_connection)
+@patch("get_sql_data.warehouse_connection", return_value=mock_connection)
 def test_full_tables_should_contain_complete_table(*args):
     result = get_sql_data(test_time)
     mock_connection.call_count = 0
@@ -82,7 +82,7 @@ def test_full_tables_should_contain_complete_table(*args):
     assert len(result["full_department_table"]) == 9
 
 
-@patch.object(pg, "Connection", return_value=mock_connection)
+@patch("get_sql_data.warehouse_connection", return_value=mock_connection)
 def test_full_tables_have_correct_values(*args):
     result = get_sql_data(test_time)
     mock_connection.call_count = 0
@@ -104,14 +104,15 @@ def return_partial_query(*args, time=test_time):
         mock_updates.columns = partial_column_names_query[0]
         return all_tables_query
     else:
-        mock_updates.columns = partial_column_names_query[mock_updates.call_count - 2]
+        mock_updates.columns = \
+            partial_column_names_query[mock_updates.call_count - 2]
         return partial_data_query[mock_updates.call_count - 2]
 
 
 mock_updates.run.side_effect = return_partial_query
 
 
-@patch.object(pg, "Connection", return_value=mock_updates)
+@patch("get_sql_data.warehouse_connection", return_value=mock_updates)
 def test_ignores_empty_tables(*args):
     result = get_sql_data(test_time)
     mock_updates.call_count = 0

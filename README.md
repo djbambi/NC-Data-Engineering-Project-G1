@@ -43,13 +43,17 @@ Cloudwatch - each Lambda has a Log group which log progress and any errors that 
 
 ## Credentials
 
-__ToteSys Databse__: The hostname, port, database name, username and password need to be included in the db_connection.py file for the ingestionlambda.
-__Warehouse Database__: The Warehouse credentials are stored in the AWS Secrets Manager
+__ToteSys Databse__: The hostname, database name, username and password are needed for the ingestionlambda, hostname and password are stored in the AWS Secrets Manager, they are retrieved, and a connection is returned from the db_connection.py file.
+__Warehouse Database__: The Warehouse credentials are stored in the AWS Secrets Manager.
 
 
 ## Makefile
 
-The makefile will setup the relevant environment and also install dependencies from the 'requirements.txt' file. ????How is it ran????
+The makefile will setup the relevant environment and install dependencies from the 'requirements.txt' file. It will also check for security vulnerabilities, pep8 compliance, and run unit-tests.  
+__Usage__:
+From the root directory, the following commands can be run:
+- 'make' or 'make create-environment' will create a virtual environment with the correct python version (3.9), and install all dependencies from the 'requirements.txt' file
+- 'make run-checks' will run security tests using safety and bandit, run flake8, and run all pytest unit-tests. These comands will run for each of the 3 lambda folders. The commands can also be run separately using 'make security-test', 'make run-flake', or 'make unit-test'.
 
 
 ## Conclusion

@@ -14,13 +14,13 @@ def lambda_handler(event, context):
 
     ingestion_bucket = find_bucket_by_keyword("ingestion")
 
-    latest_timestamp = retrieve_timestamp(ingestion_bucket)
+    previous_timestamp = retrieve_timestamp(ingestion_bucket)
 
-    timestamp = create_timestamp()
-    upload_timestamp(timestamp, ingestion_bucket)
+    current_timestamp = create_timestamp()
+    upload_timestamp(current_timestamp, ingestion_bucket)
 
-    sql_data = get_sql_data(latest_timestamp)
+    sql_data = get_sql_data(previous_timestamp)
 
-    upload_files = upload_to_s3(sql_data, timestamp, ingestion_bucket)
+    upload_files = upload_to_s3(sql_data, current_timestamp, ingestion_bucket)
 
     logger.info(f"Successfully uploaded {upload_files} to {ingestion_bucket}")
